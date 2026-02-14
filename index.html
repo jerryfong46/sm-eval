@@ -18,112 +18,181 @@
 
       <section class="card">
         <h2>Inputs</h2>
-        <form id="sim-form" class="form-grid">
-          <label>
-            Initial mortgage ($)
-            <input type="number" id="mortgagePrincipal" min="0" step="1000" value="600000" required />
-          </label>
-          <label>
-            Mortgage annual rate (%)
-            <input type="number" id="mortgageRate" min="0" step="0.01" value="5.2" required />
-          </label>
-          <label>
-            Amortization (years)
-            <input type="number" id="amortYears" min="1" step="1" value="25" required />
-          </label>
-          <label>
-            Extra monthly mortgage payment ($)
-            <input type="number" id="extraPayment" min="0" step="50" value="0" required />
-          </label>
-          <label>
-            Simulation horizon (years)
-            <input type="number" id="horizonYears" min="1" step="1" value="25" required />
-          </label>
-          <label>
-            Home value ($)
-            <input type="number" id="homeValue" min="0" step="1000" value="850000" required />
-          </label>
+        <form id="sim-form" class="form-sections">
+          <fieldset class="input-section">
+            <legend>Mortgage &amp; Home</legend>
+            <div class="section-grid">
+              <label>
+                Initial mortgage ($)
+                <input type="number" id="mortgagePrincipal" min="0" step="1000" value="600000" required />
+              </label>
+              <label>
+                Mortgage annual rate (%)
+                <input type="number" id="mortgageRate" min="0" step="0.01" value="5.2" required />
+              </label>
+              <label>
+                Amortization (years)
+                <input type="number" id="amortYears" min="1" step="1" value="25" required />
+              </label>
+              <label>
+                Extra monthly mortgage payment ($)
+                <input type="number" id="extraPayment" min="0" step="50" value="0" required />
+              </label>
+              <label>
+                Simulation horizon (years)
+                <input type="number" id="horizonYears" min="1" step="1" value="25" required />
+              </label>
+              <label>
+                Home value ($)
+                <input type="number" id="homeValue" min="0" step="1000" value="850000" required />
+              </label>
+            </div>
+          </fieldset>
 
-          <label>
-            Initial portfolio ($)
-            <input type="number" id="startingPortfolio" min="0" step="100" value="0" required />
-          </label>
-          <label>
-            Fallback annual price return (%)
-            <input type="number" id="fallbackPortfolioReturn" step="0.01" value="6.5" required />
-          </label>
-          <label>
-            HELOC annual rate (%)
-            <input type="number" id="helocRate" min="0" step="0.01" value="6.2" required />
-          </label>
+          <fieldset class="input-section">
+            <legend>Portfolio &amp; HELOC</legend>
+            <div class="section-grid">
+              <label>
+                Initial portfolio ($)
+                <input type="number" id="startingPortfolio" min="0" step="100" value="0" required />
+              </label>
+              <label>
+                Fallback annual price return (%)
+                <input type="number" id="fallbackPortfolioReturn" step="0.01" value="6.5" required />
+              </label>
+              <label>
+                HELOC annual rate (%)
+                <input type="number" id="helocRate" min="0" step="0.01" value="6.2" required />
+              </label>
+              <label>
+                HELOC payment strategy
+                <select id="helocPaymentStrategy">
+                  <option value="self_capitalize" selected>Self-capitalize interest</option>
+                  <option value="interest_only_cashflow">Pay interest from cashflow</option>
+                  <option value="interest_plus_principal">Pay interest + monthly principal</option>
+                </select>
+              </label>
+              <label id="helocPrincipalPaymentWrap">
+                Monthly HELOC principal payment ($)
+                <input type="number" id="helocPrincipalPayment" min="0" step="50" value="0" required />
+              </label>
+            </div>
+          </fieldset>
 
-          <label>
-            Tax bracket preset
-            <select id="taxBracket">
-              <option value="custom" selected>Custom</option>
-              <option value="0.205">20.50% (Federal lower bracket)</option>
-              <option value="0.2965">29.65% (Example middle bracket)</option>
-              <option value="0.3791">37.91% (Example upper-middle bracket)</option>
-              <option value="0.4341">43.41% (Example high bracket)</option>
-            </select>
-          </label>
-          <label>
-            Marginal tax rate (%)
-            <input type="number" id="taxRate" min="0" max="100" step="0.1" value="35" required />
-          </label>
-          <label>
-            Dividend tax rate (%)
-            <input type="number" id="dividendTaxRate" min="0" max="100" step="0.1" value="25" required />
-          </label>
+          <fieldset class="input-section">
+            <legend>Tax &amp; Cashflow Strategy</legend>
+            <div class="section-grid">
+              <label>
+                Tax bracket preset
+                <select id="taxBracket">
+                  <option value="custom" selected>Custom</option>
+                  <option value="0.205">20.50% (Federal lower bracket)</option>
+                  <option value="0.2965">29.65% (Example middle bracket)</option>
+                  <option value="0.3791">37.91% (Example upper-middle bracket)</option>
+                  <option value="0.4341">43.41% (Example high bracket)</option>
+                </select>
+              </label>
+              <label>
+                Marginal tax rate (%)
+                <input type="number" id="taxRate" min="0" max="100" step="0.1" value="35" required />
+              </label>
+              <label>
+                Dividend tax rate (%)
+                <input type="number" id="dividendTaxRate" min="0" max="100" step="0.1" value="25" required />
+              </label>
+              <label>
+                Capital gains inclusion rate (%)
+                <input type="number" id="capitalGainsInclusionRate" min="0" max="100" step="0.1" value="50" required />
+              </label>
+              <label>
+                Dividend handling
+                <select id="dividendUse">
+                  <option value="compound" selected>Compound in portfolio</option>
+                  <option value="repay_mortgage">Use dividends to repay mortgage</option>
+                  <option value="pay_heloc">Use dividends to pay down HELOC</option>
+                </select>
+              </label>
+              <label>
+                Tax refund handling
+                <select id="taxRefundUse">
+                  <option value="reinvest" selected>Reinvest in portfolio</option>
+                  <option value="repay_mortgage">Use tax refund to repay mortgage</option>
+                  <option value="pay_heloc">Use tax refund to pay down HELOC</option>
+                  <option value="cash">Keep as cash (outside model)</option>
+                </select>
+              </label>
+            </div>
+          </fieldset>
 
-          <label>
-            Dividend handling
-            <select id="dividendUse">
-              <option value="compound" selected>Compound in portfolio</option>
-              <option value="repay_mortgage">Use dividends to repay mortgage</option>
-              <option value="pay_heloc">Use dividends to pay down HELOC</option>
-            </select>
-          </label>
-          <label>
-            Tax refund handling
-            <select id="taxRefundUse">
-              <option value="reinvest" selected>Reinvest in portfolio</option>
-              <option value="repay_mortgage">Use tax refund to repay mortgage</option>
-              <option value="pay_heloc">Use tax refund to pay down HELOC</option>
-              <option value="cash">Keep as cash (outside model)</option>
-            </select>
-          </label>
-          <label>
-            HELOC payment strategy
-            <select id="helocPaymentStrategy">
-              <option value="self_capitalize" selected>Self-capitalize interest</option>
-              <option value="interest_only_cashflow">Pay interest from cashflow</option>
-              <option value="interest_plus_principal">Pay interest + monthly principal</option>
-            </select>
-          </label>
-          <label id="helocPrincipalPaymentWrap">
-            Monthly HELOC principal payment ($)
-            <input type="number" id="helocPrincipalPayment" min="0" step="50" value="0" required />
-          </label>
-
-          <fieldset class="full-span holdings-fieldset">
+          <fieldset class="holdings-fieldset">
             <legend>Borrowed funds allocation (stocks / ETFs)</legend>
             <p class="hint">
               Use allocation %, expected annual price return %, and dividend yield %. If all allocations are zero,
               fallback return is used.
             </p>
             <p class="hint">
-              Tax note (Canada): for non-registered Smith Manoeuvre setups, many people prefer holdings with little
-              or no return of capital (ROC) and more eligible Canadian dividends to reduce tax complexity.
+              Hover or focus each category below for Canadian SM notes. Expected returns are illustrative long-term
+              estimates.
             </p>
-            <p class="hint">
-              Common Canadian starting points: <strong>XIU, XIC, VCN, ZCN</strong> (core Canadian equity),
-              <strong>XEI, VDY, CDZ</strong> (dividend tilt), and <strong>VEQT/XEQT</strong> (one-ticket equity,
-              but mixed distribution types).
-            </p>
-            <p class="hint">
-              Always verify each fund's latest annual tax breakdown from the ETF provider before buying.
-            </p>
+            <div class="strategy-rollovers" aria-label="Canadian ETF category notes">
+              <article class="rollover">
+                <button type="button" class="rollover-trigger" aria-describedby="tip-dividend-tilt">
+                  Dividend Tilt: VDY, XEI, CDZ
+                </button>
+                <div id="tip-dividend-tilt" class="rollover-panel" role="tooltip">
+                  <p><strong>Typical SM Allocation:</strong> 50% - 100% (for pure SM cash-flow accounts)</p>
+                  <p><strong>Expected Dividend Yield:</strong> 4.5% - 5.0% (almost entirely eligible)</p>
+                  <p><strong>Expected Annual Price Return:</strong> 2.0% - 3.5%</p>
+                  <p>
+                    <strong>Verdict:</strong> Administrative gold standard. High yield helps service HELOC interest,
+                    usually with zero or near-zero ROC.
+                  </p>
+                </div>
+              </article>
+              <article class="rollover">
+                <button type="button" class="rollover-trigger" aria-describedby="tip-core-canadian">
+                  Core Canadian Equity: XIU, XIC, VCN, ZCN
+                </button>
+                <div id="tip-core-canadian" class="rollover-panel" role="tooltip">
+                  <p><strong>Typical SM Allocation:</strong> 50% - 100%</p>
+                  <p><strong>Expected Dividend Yield:</strong> 2.8% - 3.2% (vast majority eligible)</p>
+                  <p><strong>Expected Annual Price Return:</strong> 4.0% - 5.0%</p>
+                  <p>
+                    <strong>Verdict:</strong> Excellent starting point. Better sector diversification versus
+                    dividend-heavy ETFs while keeping clean tax reporting.
+                  </p>
+                </div>
+              </article>
+              <article class="rollover">
+                <button type="button" class="rollover-trigger" aria-describedby="tip-all-in-one">
+                  All-in-One: VEQT, XEQT
+                </button>
+                <div id="tip-all-in-one" class="rollover-panel" role="tooltip">
+                  <p><strong>Typical SM Allocation:</strong> 0% (for strict tax-optimized SM accounts)</p>
+                  <p><strong>Expected Dividend Yield:</strong> 1.8% - 2.2% (mixed distribution types)</p>
+                  <p><strong>Expected Annual Price Return:</strong> 5.5% - 6.5%</p>
+                  <p>
+                    <strong>Verdict:</strong> Strong total-return funds, but distributions are tax-mixed (foreign
+                    income, possible phantom distributions, occasional ROC). Usually better if distributions are fully
+                    reinvested.
+                  </p>
+                </div>
+              </article>
+              <article class="rollover">
+                <button type="button" class="rollover-trigger" aria-describedby="tip-individual-stocks">
+                  Individual Banks: RY, TD, BNS, BMO, CM, NA
+                </button>
+                <div id="tip-individual-stocks" class="rollover-panel" role="tooltip">
+                  <p><strong>Typical SM Allocation:</strong> 0% - 50% (often paired with ETFs)</p>
+                  <p><strong>Expected Dividend Yield:</strong> 4.0% - 6.0% (generally eligible)</p>
+                  <p><strong>Expected Annual Price Return:</strong> 3.0% - 6.0%</p>
+                  <p>
+                    <strong>Verdict:</strong> Can be tax-efficient and cash-flow friendly, but concentration risk is
+                    much higher than ETF baskets. Many investors cap single-stock weight and combine with broad ETFs.
+                  </p>
+                </div>
+              </article>
+            </div>
             <div class="table-wrap">
               <table class="holding-table">
                 <thead>
@@ -141,7 +210,7 @@
             <button type="button" id="addHolding" class="small-btn">Add Holding</button>
           </fieldset>
 
-          <button type="submit" class="full-span">Run simulation</button>
+          <button type="submit">Run simulation</button>
         </form>
       </section>
 
@@ -150,6 +219,7 @@
         <div class="tab-nav">
           <button type="button" class="tab-btn active" data-tab-target="customTabPanel">Custom Strategy</button>
           <button type="button" class="tab-btn" data-tab-target="compareTabPanel">Strategy Compare</button>
+          <button type="button" class="tab-btn" data-tab-target="sensitivityTabPanel">Sensitivity</button>
         </div>
 
         <div id="customTabPanel" class="tab-panel active">
@@ -167,7 +237,8 @@
                   <th>HELOC Balance</th>
                   <th>Portfolio</th>
                   <th>Tax Refund Applied</th>
-                  <th>Net Position</th>
+                  <th>Net Position (Pre-tax)</th>
+                  <th>After-tax Closeout Net</th>
                 </tr>
               </thead>
               <tbody id="yearlyRows"></tbody>
@@ -208,7 +279,7 @@
                   <th>Final Mortgage</th>
                   <th>Final HELOC</th>
                   <th>Final Portfolio</th>
-                  <th>Final Net Position</th>
+                  <th>Final After-tax Closeout Net</th>
                 </tr>
               </thead>
               <tbody id="compareSummaryRows"></tbody>
@@ -221,6 +292,44 @@
             <table>
               <thead id="compareYearlyHead"></thead>
               <tbody id="compareYearlyRows"></tbody>
+            </table>
+          </div>
+        </div>
+
+        <div id="sensitivityTabPanel" class="tab-panel">
+          <p class="summary">
+            Evaluate downside/upside and break-even points against a mortgage-only baseline using after-tax closeout net.
+          </p>
+          <div class="table-wrap">
+            <table>
+              <thead>
+                <tr>
+                  <th>Scenario</th>
+                  <th>Final After-tax Net</th>
+                  <th>Vs Mortgage-only</th>
+                  <th>Max HELOC</th>
+                  <th>Peak Annual HELOC Interest</th>
+                  <th>Years Below Baseline</th>
+                </tr>
+              </thead>
+              <tbody id="sensitivityMatrixRows"></tbody>
+            </table>
+          </div>
+
+          <div class="metric-strip">
+            <article class="metric">
+              <h3>Break-even Annual Price Return</h3>
+              <p id="sensitivityBreakEven">-</p>
+            </article>
+          </div>
+
+          <p class="summary">
+            Heatmap: change in final after-tax closeout net versus Mortgage-only baseline.
+          </p>
+          <div class="table-wrap">
+            <table class="heatmap-table">
+              <thead id="sensitivityHeatmapHead"></thead>
+              <tbody id="sensitivityHeatmapRows"></tbody>
             </table>
           </div>
         </div>

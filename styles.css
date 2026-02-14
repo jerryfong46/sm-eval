@@ -47,7 +47,12 @@ h2 {
   margin-top: 0;
 }
 
-.form-grid {
+.form-sections {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.section-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
   gap: 0.75rem;
@@ -88,16 +93,16 @@ button {
   border-radius: 8px;
 }
 
-.full-span {
-  grid-column: 1 / -1;
-}
-
+.input-section,
 .holdings-fieldset {
+  margin: 0;
+  min-width: 0;
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 0.8rem;
 }
 
+.input-section legend,
 .holdings-fieldset legend {
   font-weight: 700;
   font-size: 0.95rem;
@@ -107,6 +112,55 @@ button {
   margin: 0 0 0.6rem;
   color: var(--muted);
   font-size: 0.88rem;
+}
+
+.strategy-rollovers {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin: 0.45rem 0 0.75rem;
+}
+
+.rollover {
+  position: relative;
+}
+
+.rollover-trigger {
+  background: #deefed;
+  color: #143435;
+  border: 1px solid #bdd9d6;
+  border-radius: 999px;
+  padding: 0.35rem 0.7rem;
+  font-size: 0.84rem;
+}
+
+.rollover-panel {
+  display: none;
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  z-index: 30;
+  width: min(520px, 86vw);
+  background: #ffffff;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  box-shadow: 0 8px 24px rgba(10, 28, 31, 0.12);
+  padding: 0.65rem;
+}
+
+.rollover-panel p {
+  margin: 0 0 0.45rem;
+  font-size: 0.85rem;
+  line-height: 1.35;
+}
+
+.rollover-panel p:last-child {
+  margin-bottom: 0;
+}
+
+.rollover:hover .rollover-panel,
+.rollover:focus-within .rollover-panel {
+  display: block;
 }
 
 .table-wrap {
@@ -163,6 +217,15 @@ td:first-child {
   min-width: 120px;
 }
 
+.heatmap-table td,
+.heatmap-table th {
+  text-align: center;
+}
+
+.heat-cell {
+  font-weight: 700;
+}
+
 .metrics {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -175,6 +238,13 @@ td:first-child {
   border-radius: 10px;
   padding: 0.65rem;
   background: #fbfefe;
+}
+
+.metric-strip {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 0.75rem;
+  margin-bottom: 0.8rem;
 }
 
 .metric h3 {
@@ -251,7 +321,13 @@ canvas {
     margin-top: 1rem;
   }
 
-  .form-grid {
+  .section-grid {
     grid-template-columns: 1fr;
+  }
+
+  .rollover-panel {
+    position: static;
+    width: 100%;
+    margin-top: 0.35rem;
   }
 }

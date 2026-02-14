@@ -28,6 +28,10 @@ A simple static web app to model mortgage paydown and portfolio growth under a S
   - enable/disable any scenario
   - add unlimited custom scenarios
   - choose HELOC payment strategy, dividend handling, tax refund handling, dividend tax treatment, and net-refund behavior per scenario
+- Includes a Sensitivity tab with:
+  - downside/upside scenario matrix
+  - break-even annual return vs mortgage-only baseline
+  - return-vs-HELOC-rate heatmap of after-tax net outcomes
 - Shows headline metrics, yearly table, and chart
 
 ## Tax-aware ticker guidance (Canada)
@@ -76,5 +80,7 @@ Then visit [http://localhost:8000](http://localhost:8000).
 - Fixed mortgage rate and payment across the full horizon
 - Constant return assumptions based on your holdings inputs
 - HELOC interest deduction/refund is estimated using a single marginal tax rate
+- After-tax closeout net estimates liquidation tax as:
+  - unrealized gain x capital-gains inclusion rate x marginal tax rate
 - Home value is held constant (no appreciation/depreciation)
 - This is educational planning software, not financial advice
