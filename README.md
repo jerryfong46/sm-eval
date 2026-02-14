@@ -22,6 +22,15 @@ A simple static web app to model mortgage paydown and portfolio growth under a S
   - pay interest plus monthly principal
 - Shows headline metrics, yearly table, and chart
 
+## Tax-aware ticker guidance (Canada)
+
+- For non-registered Smith Manoeuvre setups, many users try to minimize return of capital (ROC) and favor eligible Canadian dividends to reduce tax-reporting complexity.
+- Common Canadian starting points:
+  - Core Canadian equity: `XIU`, `XIC`, `VCN`, `ZCN`
+  - Canadian dividend tilt: `XEI`, `VDY`, `CDZ`
+  - One-ticket equity: `VEQT`, `XEQT` (distributions can include mixed tax types)
+- Verify each ETF's latest annual tax breakdown from the issuer before buying.
+
 ## Run locally
 
 Because this is a static app, you can run it with any local file server.

@@ -45,7 +45,7 @@ function addHoldingRow(values = {}) {
 
 function loadDefaultHoldings() {
   if (holdingsRowsEl.children.length > 0) return;
-  addHoldingRow({ symbol: "VFV", allocation: 60, priceReturn: 6.5, dividendYield: 1.3 });
+  addHoldingRow({ symbol: "XIU", allocation: 60, priceReturn: 5.8, dividendYield: 3.0 });
   addHoldingRow({ symbol: "XEI", allocation: 40, priceReturn: 4.5, dividendYield: 5.0 });
 }
 
