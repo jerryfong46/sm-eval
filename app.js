@@ -468,8 +468,7 @@ function runScenarioSimulation(inputs, scenario) {
     const pendingTaxRefundReceivable = pendingTaxRefunds.reduce((sum, item) => sum + item.amount, 0);
 
     const homeEquity = inputs.homeValue - mortgageBalance;
-    const netPosition =
-      homeEquity +
+    const smithValuePreTax =
       portfolio +
       cashBalance +
       pendingTaxRefundReceivable -
@@ -481,13 +480,14 @@ function runScenarioSimulation(inputs, scenario) {
       inputs.taxRate,
       inputs.capitalGainsInclusionRate
     );
-    const netAfterTax =
-      homeEquity +
+    const smithValueAfterTax =
       (portfolio - liquidationTax) +
       cashBalance +
       pendingTaxRefundReceivable -
       helocBalance -
       cumulativeExternalContributions;
+    const netPosition = homeEquity + smithValuePreTax;
+    const netAfterTax = homeEquity + smithValueAfterTax;
     maxHelocBalance = Math.max(maxHelocBalance, helocBalance);
 
     timeline.push({
@@ -496,6 +496,8 @@ function runScenarioSimulation(inputs, scenario) {
       mortgageBalance,
       helocBalance,
       portfolio,
+      smithValuePreTax,
+      smithValueAfterTax,
       netPosition,
       netAfterTax,
       liquidationTax,
@@ -516,6 +518,8 @@ function runScenarioSimulation(inputs, scenario) {
       finalMortgageBalance: last.mortgageBalance,
       finalHelocBalance: last.helocBalance,
       finalPortfolio: last.portfolio,
+      finalSmithValuePreTax: last.smithValuePreTax,
+      finalSmithValueAfterTax: last.smithValueAfterTax,
       finalPreTaxNetPosition: last.netPosition,
       finalAfterTaxNetPosition: last.netAfterTax,
       finalEstimatedLiquidationTax: last.liquidationTax,
@@ -873,6 +877,7 @@ function renderMetrics(summary) {
     ["Final Mortgage", summary.finalMortgageBalance],
     ["Final HELOC", summary.finalHelocBalance],
     ["Final Portfolio", summary.finalPortfolio],
+    ["Final Smith-Only Value (After-tax)", summary.finalSmithValueAfterTax],
     ["Final Net Position (Pre-tax)", summary.finalPreTaxNetPosition],
     ["Est. Liquidation Tax", summary.finalEstimatedLiquidationTax],
     ["Final After-tax Economic Closeout Net", summary.finalAfterTaxNetPosition],
@@ -899,6 +904,7 @@ function renderYearlyRows(yearly) {
   yearlyRowsEl.innerHTML = yearly
     .map((d) => {
       const netClass = d.netAfterTax < 0 ? "negative" : "";
+      const smithClass = d.smithValueAfterTax < 0 ? "negative" : "";
       return `<tr>
         <td>${d.year}</td>
         <td>${currency.format(d.mortgageBalance)}</td>
@@ -907,6 +913,7 @@ function renderYearlyRows(yearly) {
         <td>${currency.format(d.taxRefundApplied)}</td>
         <td>${currency.format(d.netPosition)}</td>
         <td class="${netClass}">${currency.format(d.netAfterTax)}</td>
+        <td class="${smithClass}">${currency.format(d.smithValueAfterTax)}</td>
       </tr>`;
     })
     .join("");
@@ -1059,6 +1066,7 @@ function renderStrategySummary(inputs, summary) {
     `Net refund of dividend tax: ${yesNo(inputs.netTaxRefundOfDividendTax)}. ` +
     `Refund lag: ${inputs.taxRefundLagMonths} month(s). ` +
     `HELOC strategy: ${labelForHelocStrategy(inputs.helocPaymentStrategy)}. ` +
+    `Smith-only value excludes home equity and isolates the strategy sleeve (portfolio/cash/refunds minus HELOC/external cash). ` +
     `After-tax closeout includes selling the full portfolio, taxes unrealized gains using your inclusion and marginal tax inputs, ` +
     `adds uninvested cash and pending tax refunds, and subtracts any external cash used to service HELOC interest/principal.`;
 }
