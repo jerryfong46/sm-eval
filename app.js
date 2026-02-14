@@ -911,9 +911,9 @@ function renderYearlyRows(yearly) {
         <td>${currency.format(d.helocBalance)}</td>
         <td>${currency.format(d.portfolio)}</td>
         <td>${currency.format(d.taxRefundApplied)}</td>
-        <td>${currency.format(d.netPosition)}</td>
-        <td class="${netClass}">${currency.format(d.netAfterTax)}</td>
         <td class="${smithClass}">${currency.format(d.smithValueAfterTax)}</td>
+        <td class="${netClass}">${currency.format(d.netAfterTax)}</td>
+        <td>${currency.format(d.netPosition)}</td>
       </tr>`;
     })
     .join("");
