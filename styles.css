@@ -40,6 +40,7 @@ header p {
   border: 1px solid var(--border);
   border-radius: 12px;
   padding: 1rem;
+  min-width: 0;
 }
 
 h2 {
@@ -109,6 +110,8 @@ button {
 }
 
 .table-wrap {
+  min-width: 0;
+  max-width: 100%;
   overflow: auto;
 }
 
@@ -143,16 +146,21 @@ td:first-child {
   padding: 0.3rem;
 }
 
+.scenario-table {
+  width: max-content;
+  min-width: 100%;
+}
+
 .scenario-table input[type="text"] {
-  min-width: 160px;
+  min-width: 140px;
 }
 
 .scenario-table input[type="number"] {
-  min-width: 115px;
+  min-width: 100px;
 }
 
 .scenario-table select {
-  min-width: 150px;
+  min-width: 120px;
 }
 
 .metrics {
@@ -208,6 +216,7 @@ td:first-child {
 
 .tab-panel {
   display: none;
+  min-width: 0;
 }
 
 .tab-panel.active {
