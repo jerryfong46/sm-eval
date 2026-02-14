@@ -35,6 +35,18 @@ header p {
   color: var(--muted);
 }
 
+.hero-callout {
+  margin-top: 0.5rem;
+  margin-bottom: 0;
+  color: #12393a;
+  background: linear-gradient(90deg, #deefed 0%, #eef6f5 100%);
+  border: 1px solid #bdd9d6;
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  font-size: 0.93rem;
+  line-height: 1.4;
+}
+
 .card {
   background: var(--panel);
   border: 1px solid var(--border);
@@ -309,6 +321,97 @@ canvas {
 
 .negative {
   color: var(--danger);
+}
+
+.site-disclaimer {
+  border: 1px solid #d6e0e1;
+  border-radius: 10px;
+  background: #f9fcfc;
+  padding: 0.75rem 0.85rem;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.site-disclaimer p {
+  margin: 0;
+}
+
+.site-disclaimer-title {
+  color: #143435;
+  font-weight: 700;
+  margin-bottom: 0.25rem;
+}
+
+.learn-dropdown {
+  border: 1px solid #c6d7d8;
+  border-radius: 10px;
+  background: #ffffff;
+  overflow: hidden;
+}
+
+.learn-dropdown summary {
+  list-style: none;
+  cursor: pointer;
+  padding: 0.7rem 0.85rem;
+  font-weight: 700;
+  color: #143435;
+  background: #eef6f5;
+  border-bottom: 1px solid #d6e0e1;
+}
+
+.learn-dropdown summary::-webkit-details-marker {
+  display: none;
+}
+
+.hamburger {
+  display: inline-block;
+  margin-right: 0.45rem;
+}
+
+.learn-content {
+  padding: 0.8rem 0.9rem;
+  color: #243b3c;
+}
+
+.learn-content h3 {
+  margin-top: 0.85rem;
+  margin-bottom: 0.35rem;
+  font-size: 0.98rem;
+}
+
+.learn-content p {
+  margin-top: 0;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.learn-source {
+  color: var(--muted);
+  font-size: 0.84rem;
+}
+
+.learn-toc,
+.learn-steps {
+  margin-top: 0;
+  margin-bottom: 0.6rem;
+  padding-left: 1.1rem;
+}
+
+.learn-toc li,
+.learn-steps li {
+  margin-bottom: 0.2rem;
+  font-size: 0.9rem;
+}
+
+.learn-toc a {
+  color: #1b5b8a;
+  text-decoration: none;
+}
+
+.learn-toc a:hover {
+  text-decoration: underline;
 }
 
 @media (max-width: 640px) {
