@@ -30,11 +30,11 @@
             <div class="section-grid">
               <label>
                 Initial mortgage ($)
-                <input type="number" id="mortgagePrincipal" min="0" step="1000" value="600000" required />
+                <input type="number" id="mortgagePrincipal" min="0" step="1000" value="1200000" required />
               </label>
               <label>
                 Mortgage annual rate (%)
-                <input type="number" id="mortgageRate" min="0" step="0.01" value="5.2" required />
+                <input type="number" id="mortgageRate" min="0" step="0.01" value="4.1" required />
               </label>
               <label>
                 Amortization (years)
@@ -50,7 +50,7 @@
               </label>
               <label>
                 Home value ($)
-                <input type="number" id="homeValue" min="0" step="1000" value="850000" required />
+                <input type="number" id="homeValue" min="0" step="1000" value="1500000" required />
               </label>
             </div>
           </fieldset>
@@ -68,11 +68,11 @@
               </label>
               <label>
                 Fallback annual price return (%)
-                <input type="number" id="fallbackPortfolioReturn" step="0.01" value="6.5" required />
+                <input type="number" id="fallbackPortfolioReturn" step="0.01" value="5" required />
               </label>
               <label>
                 HELOC annual rate (%)
-                <input type="number" id="helocRate" min="0" step="0.01" value="6.2" required />
+                <input type="number" id="helocRate" min="0" step="0.01" value="4.6" required />
               </label>
               <label>
                 HELOC payment strategy
@@ -104,11 +104,11 @@
               </label>
               <label>
                 Marginal tax rate (%)
-                <input type="number" id="taxRate" min="0" max="100" step="0.1" value="35" required />
+                <input type="number" id="taxRate" min="0" max="100" step="0.1" value="53.53" required />
               </label>
               <label>
                 Dividend tax rate (%)
-                <input type="number" id="dividendTaxRate" min="0" max="100" step="0.1" value="25" required />
+                <input type="number" id="dividendTaxRate" min="0" max="100" step="0.1" value="39.34" required />
               </label>
               <label>
                 Capital gains inclusion rate (%)
@@ -146,8 +146,8 @@
               <label>
                 Tax refund handling
                 <select id="taxRefundUse">
-                  <option value="reinvest" selected>Reinvest in portfolio</option>
-                  <option value="repay_mortgage">Use tax refund to repay mortgage</option>
+                  <option value="reinvest">Reinvest in portfolio</option>
+                  <option value="repay_mortgage" selected>Use tax refund to repay mortgage</option>
                   <option value="pay_heloc">Use tax refund to pay down HELOC</option>
                   <option value="cash">Keep as cash (outside model)</option>
                 </select>
