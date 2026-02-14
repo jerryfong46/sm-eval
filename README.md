@@ -20,6 +20,14 @@ A simple static web app to model mortgage paydown and portfolio growth under a S
   - self-capitalize interest
   - pay interest from cashflow
   - pay interest plus monthly principal
+- Includes a Strategy Compare tab with presets:
+  - A) Mortgage only (no Smith Manoeuvre)
+  - B) Conservative Smith (dividends to HELOC, self-capitalized HELOC interest, tax refund net of dividend tax to HELOC)
+  - C) Aggressive Smith (self-capitalize HELOC interest, compound dividends, tax refund to mortgage)
+- Strategy Compare is fully configurable:
+  - enable/disable any scenario
+  - add unlimited custom scenarios
+  - choose HELOC payment strategy, dividend handling, tax refund handling, dividend tax treatment, and net-refund behavior per scenario
 - Shows headline metrics, yearly table, and chart
 
 ## Tax-aware ticker guidance (Canada)

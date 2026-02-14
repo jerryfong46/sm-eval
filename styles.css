@@ -139,6 +139,22 @@ td:first-child {
   min-width: 110px;
 }
 
+.scenario-table td {
+  padding: 0.3rem;
+}
+
+.scenario-table input[type="text"] {
+  min-width: 160px;
+}
+
+.scenario-table input[type="number"] {
+  min-width: 115px;
+}
+
+.scenario-table select {
+  min-width: 150px;
+}
+
 .metrics {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
@@ -170,6 +186,32 @@ td:first-child {
   color: var(--muted);
   margin-top: 0;
   margin-bottom: 0.8rem;
+}
+
+.tab-nav {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.85rem;
+  flex-wrap: wrap;
+}
+
+.tab-btn {
+  background: #d8e7e7;
+  color: #143435;
+  border: 1px solid var(--border);
+}
+
+.tab-btn.active {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.tab-panel {
+  display: none;
+}
+
+.tab-panel.active {
+  display: block;
 }
 
 .chart-wrap {
