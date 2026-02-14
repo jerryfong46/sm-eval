@@ -57,6 +57,10 @@
                 <input type="number" id="startingPortfolio" min="0" step="100" value="0" required />
               </label>
               <label>
+                Initial portfolio ACB ($)
+                <input type="number" id="startingPortfolioAcb" min="0" step="100" value="0" required />
+              </label>
+              <label>
                 Fallback annual price return (%)
                 <input type="number" id="fallbackPortfolioReturn" step="0.01" value="6.5" required />
               </label>
@@ -103,6 +107,27 @@
               <label>
                 Capital gains inclusion rate (%)
                 <input type="number" id="capitalGainsInclusionRate" min="0" max="100" step="0.1" value="50" required />
+              </label>
+              <label>
+                Tax dividends in annual cashflow?
+                <select id="taxDividends">
+                  <option value="yes" selected>Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </label>
+              <label>
+                Net tax refund of dividend tax?
+                <select id="netTaxRefundOfDividendTax">
+                  <option value="yes" selected>Yes</option>
+                  <option value="no">No</option>
+                </select>
+              </label>
+              <label>
+                Tax refund lag (months)
+                <select id="taxRefundLagMonths">
+                  <option value="12" selected>12 (filing-year lag)</option>
+                  <option value="0">0 (immediate estimate)</option>
+                </select>
               </label>
               <label>
                 Dividend handling
@@ -238,7 +263,7 @@
                   <th>Portfolio</th>
                   <th>Tax Refund Applied</th>
                   <th>Net Position (Pre-tax)</th>
-                  <th>After-tax Closeout Net</th>
+                  <th>After-tax Economic Closeout Net</th>
                 </tr>
               </thead>
               <tbody id="yearlyRows"></tbody>
@@ -279,7 +304,7 @@
                   <th>Final Mortgage</th>
                   <th>Final HELOC</th>
                   <th>Final Portfolio</th>
-                  <th>Final After-tax Closeout Net</th>
+                  <th>Final After-tax Economic Closeout Net</th>
                 </tr>
               </thead>
               <tbody id="compareSummaryRows"></tbody>
@@ -298,14 +323,14 @@
 
         <div id="sensitivityTabPanel" class="tab-panel">
           <p class="summary">
-            Evaluate downside/upside and break-even points against a mortgage-only baseline using after-tax closeout net.
+            Evaluate downside/upside and break-even points against a mortgage-only baseline under the same assumption set, using after-tax economic closeout net.
           </p>
           <div class="table-wrap">
             <table>
               <thead>
                 <tr>
                   <th>Scenario</th>
-                  <th>Final After-tax Net</th>
+                  <th>Final After-tax Economic Net</th>
                   <th>Vs Mortgage-only</th>
                   <th>Max HELOC</th>
                   <th>Peak Annual HELOC Interest</th>
@@ -324,7 +349,7 @@
           </div>
 
           <p class="summary">
-            Heatmap: change in final after-tax closeout net versus Mortgage-only baseline.
+            Heatmap: change in final after-tax economic closeout net versus Mortgage-only baseline under the same return/rate assumptions.
           </p>
           <div class="table-wrap">
             <table class="heatmap-table">

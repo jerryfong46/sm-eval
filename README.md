@@ -6,7 +6,9 @@ A simple static web app to model mortgage paydown and portfolio growth under a S
 
 - Calculates monthly mortgage amortization (plus optional extra payments)
 - Re-borrows monthly principal paydown to a HELOC and invests it
+- When Smith is enabled, mortgage paydowns from dividends/tax refunds are also re-advanced and invested
 - Lets users define a holdings mix (stocks/ETFs), allocation, price return assumptions, and dividend yields
+- Supports separate initial portfolio market value and adjusted cost base (ACB)
 - Supports dividend strategy:
   - compound in portfolio
   - repay mortgage
@@ -20,6 +22,10 @@ A simple static web app to model mortgage paydown and portfolio growth under a S
   - self-capitalize interest
   - pay interest from cashflow
   - pay interest plus monthly principal
+- Supports tax treatment controls:
+  - tax dividends using a user-defined effective dividend tax rate
+  - optionally net annual tax refunds by annual dividend tax paid
+  - tax refund lag (0 or 12 months)
 - Includes a Strategy Compare tab with presets:
   - A) Mortgage only (no Smith Manoeuvre)
   - B) Conservative Smith (dividends to HELOC, self-capitalized HELOC interest, tax refund net of dividend tax to HELOC)
@@ -80,7 +86,10 @@ Then visit [http://localhost:8000](http://localhost:8000).
 - Fixed mortgage rate and payment across the full horizon
 - Constant return assumptions based on your holdings inputs
 - HELOC interest deduction/refund is estimated using a single marginal tax rate
-- After-tax closeout net estimates liquidation tax as:
+- After-tax economic closeout net estimates liquidation tax as:
   - unrealized gain x capital-gains inclusion rate x marginal tax rate
+- After-tax economic net also:
+  - adds uninvested cash and pending tax refund receivables
+  - subtracts external cash contributions used to service HELOC interest/principal
 - Home value is held constant (no appreciation/depreciation)
 - This is educational planning software, not financial advice
