@@ -434,3 +434,11 @@ canvas {
     margin-top: 0.35rem;
   }
 }
+
+[hidden] { display: none !important; }
+.market-controls { display: flex; align-items: end; gap: 1rem; flex-wrap: wrap; margin: .8rem 0; }
+.market-controls label { max-width: 280px; }
+.holding-table select { min-width: 250px; }
+.h-data { display: block; min-width: 220px; max-width: 330px; text-align: left; line-height: 1.5; }
+.forecast-warning { display: block; color: #8a4900; white-space: normal; max-width: 280px; margin-top: .4rem; }
+.holding-table input { min-width: 85px; width: 100px; }

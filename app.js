@@ -44,50 +44,17 @@ const SCENARIO_COLOR_PALETTE = [
 ];
 
 const DEFAULT_SCENARIOS = [
-  {
-    enabled: true,
-    name: "A) Mortgage Only",
-    enableSmith: false,
-    dividendUse: "compound",
-    taxRefundUse: "cash",
-    helocPaymentStrategy: "self_capitalize",
-    helocPrincipalPayment: 0,
-    taxDividends: true,
-    netTaxRefundOfDividendTax: true,
-    compoundNetDividends: true,
-  },
-  {
-    enabled: true,
-    name: "B) Conservative Smith",
-    enableSmith: true,
-    dividendUse: "pay_heloc",
-    taxRefundUse: "pay_heloc",
-    helocPaymentStrategy: "self_capitalize",
-    helocPrincipalPayment: 0,
-    taxDividends: true,
-    netTaxRefundOfDividendTax: true,
-    compoundNetDividends: true,
-  },
-  {
-    enabled: true,
-    name: "C) Aggressive Smith",
-    enableSmith: true,
-    dividendUse: "compound",
-    taxRefundUse: "repay_mortgage",
-    helocPaymentStrategy: "self_capitalize",
-    helocPrincipalPayment: 0,
-    taxDividends: true,
-    netTaxRefundOfDividendTax: true,
-    compoundNetDividends: true,
-  },
-];
+  { name: "1. Margin + compound", dividendUse: "compound", marginRatio: .30 },
+  { name: "2. Capitalize + compound", dividendUse: "compound" },
+  { name: "3. Dividend mortgage accelerator", dividendUse: "repay_mortgage" },
+  { name: "4. Dividends service interest", dividendUse: "pay_interest", helocPaymentStrategy: "interest_only_cashflow" },
+  { name: "5. Reduce investment debt", dividendUse: "pay_heloc", taxRefundUse: "pay_heloc", helocPaymentStrategy: "interest_only_cashflow" },
+  { name: "6. Mortgage only", enableSmith: false, dividendUse: "compound", taxRefundUse: "cash" },
+].map(s => ({enabled: true, enableSmith: true, taxRefundUse: "repay_mortgage",
+  helocPaymentStrategy: "self_capitalize", helocPrincipalPayment: 0, taxDividends: true,
+  netTaxRefundOfDividendTax: true, compoundNetDividends: true, marginRatio: 0, ...s}));
 
-function monthlyPayment(principal, annualRate, months) {
-  if (principal <= 0 || months <= 0) return 0;
-  const r = annualRate / 12;
-  if (r === 0) return principal / months;
-  return (principal * r) / (1 - Math.pow(1 + r, -months));
-}
+function monthlyPayment(...args) { return SMModel.monthlyPayment(...args); }
 
 function clampNumber(value, min) {
   if (!Number.isFinite(value)) return min;
@@ -132,7 +99,10 @@ function estimateLiquidationTax(portfolioValue, costBasis, marginalTaxRate, incl
 
 function addHoldingRow(values = {}) {
   const row = holdingRowTemplate.content.firstElementChild.cloneNode(true);
-  row.querySelector(".h-symbol").value = values.symbol || "";
+  populateInvestmentSelect(row.querySelector(".h-symbol"), false);
+  row.querySelector(".h-symbol").value = values.symbol || "VFV";
+  row.querySelector(".h-eligible").value = values.eligibleShare ?? INVESTMENTS[row.querySelector(".h-symbol").value].eligibleShare;
+  row.querySelectorAll("input").forEach(input => input.setAttribute("aria-label", input.className));
   row.querySelector(".h-allocation").value = values.allocation ?? 0;
   row.querySelector(".h-return").value = values.priceReturn ?? 6;
   row.querySelector(".h-dividend").value = values.dividendYield ?? 2;
@@ -146,12 +116,15 @@ function loadDefaultHoldings() {
 }
 
 function updateTaxRateFromBracket() {
-  if (taxBracketEl.value === "custom") {
-    taxRateEl.disabled = false;
-    return;
-  }
-  taxRateEl.disabled = true;
-  taxRateEl.value = (Number(taxBracketEl.value) * 100).toFixed(2);
+  const mode = taxBracketEl.value;
+  document.getElementById("grossIncomeWrap").hidden = mode !== "income";
+  taxRateEl.disabled = mode !== "custom";
+  document.getElementById("dividendTaxRate").disabled = mode !== "custom";
+  if (mode === "custom") return;
+  const rates = mode === "income" ? SMModel.marginalRates(Number(document.getElementById("grossIncome").value))
+    : {ordinary: mode === "highest" ? .535296 : Number(mode), eligible: mode === "highest" ? .39344048 : Math.max(0, Number(mode) * 1.38 - .345265)};
+  taxRateEl.value = (rates.ordinary * 100).toFixed(4);
+  document.getElementById("dividendTaxRate").value = (rates.eligible * 100).toFixed(4);
 }
 
 function updateHelocPrincipalFieldVisibility() {
@@ -176,6 +149,7 @@ function parseHoldings() {
     allocation: clampNumber(Number(row.querySelector(".h-allocation").value), 0),
     priceReturn: Number(row.querySelector(".h-return").value) / 100,
     dividendYield: clampNumber(Number(row.querySelector(".h-dividend").value), 0) / 100,
+    eligibleShare: clampRate(Number(row.querySelector(".h-eligible").value)),
   }));
 
   return rows.filter(
@@ -219,6 +193,10 @@ function parseInputs() {
   const weightedAssumptions = weightedPortfolioAssumptions(holdings, fallbackPortfolioReturn);
 
   return {
+    age: v("age"), initialWithdrawal: v("initialWithdrawal"), initialHelocRoom: v("initialHelocRoom"),
+    marginRate: clampRate(v("marginRate")), marginRatio: clampRate(v("marginRatio")), marginMaintenanceLtv: clampRate(v("marginMaintenanceLtv")),
+    taxMode: taxBracketEl.value === "income" ? "income" : "rates", grossIncome: v("grossIncome"),
+    eligibleDividendShare: weightedEligibleShare(holdings),
     mortgagePrincipal: clampNumber(v("mortgagePrincipal"), 0),
     mortgageRate: clampRate(v("mortgageRate")),
     amortYears: clampNumber(v("amortYears"), 1),
@@ -259,6 +237,9 @@ function addScenarioRow(values = {}) {
 
   row.querySelector(".s-enabled").checked = values.enabled ?? true;
   row.querySelector(".s-name").value = values.name || "";
+  populateInvestmentSelect(row.querySelector(".s-investment"), true);
+  row.querySelector(".s-investment").value = values.investment || "mix";
+  row.querySelector(".s-margin").value = (values.marginRatio || 0) * 100;
   row.querySelector(".s-smith").checked = values.enableSmith ?? true;
   row.querySelector(".s-dividend").value = values.dividendUse || "compound";
   row.querySelector(".s-taxrefund").value = values.taxRefundUse || "reinvest";
@@ -284,6 +265,8 @@ function parseScenarioConfigs() {
     const name = row.querySelector(".s-name").value.trim() || `Scenario ${index + 1}`;
 
     return {
+      investment: row.querySelector(".s-investment").value,
+      marginRatio: clampRate(Number(row.querySelector(".s-margin").value)),
       enabled: row.querySelector(".s-enabled").checked,
       name,
       enableSmith: row.querySelector(".s-smith").checked,
@@ -301,6 +284,7 @@ function parseScenarioConfigs() {
 function buildCustomScenario(inputs) {
   return {
     name: "Custom Strategy",
+    marginRatio: inputs.marginRatio,
     enableSmith: true,
     dividendUse: inputs.dividendUse,
     taxRefundUse: inputs.taxRefundUse,
@@ -325,213 +309,7 @@ function runCustomSimulation(inputs) {
 }
 
 function runScenarioSimulation(inputs, scenario) {
-  const totalMonths = Math.round(inputs.horizonYears * 12);
-  const amortMonths = Math.round(inputs.amortYears * 12);
-  const mortgageRateM = inputs.mortgageRate / 12;
-  const helocRateM = inputs.helocRate / 12;
-  const portfolioPriceRateM = inputs.weightedPriceReturn / 12;
-  const portfolioDividendRateM = inputs.weightedDividendYield / 12;
-
-  let mortgageBalance = inputs.mortgagePrincipal;
-  let helocBalance = 0;
-  let portfolio = inputs.startingPortfolio;
-  let portfolioCostBasis = inputs.startingPortfolioAcb;
-  let cashBalance = 0;
-
-  let yearlyDeductibleInterest = 0;
-  let yearlyDividendTaxPaid = 0;
-
-  let cumulativeHelocInterest = 0;
-  let cumulativeTaxRefund = 0;
-  let cumulativeExternalContributions = 0;
-  let maxHelocBalance = helocBalance;
-  let currentYearHelocInterest = 0;
-  let peakAnnualHelocInterest = 0;
-  let pendingTaxRefunds = [];
-
-  const timeline = [];
-
-  const scheduledMortgagePayment = monthlyPayment(
-    mortgageBalance,
-    inputs.mortgageRate,
-    amortMonths
-  );
-
-  const reborrowIntoPortfolio = (amount) => {
-    if (!scenario.enableSmith) return;
-    const borrowAmount = Math.max(0, amount);
-    if (borrowAmount <= 0) return;
-    helocBalance += borrowAmount;
-    portfolio += borrowAmount;
-    portfolioCostBasis += borrowAmount;
-  };
-
-  for (let month = 1; month <= totalMonths; month += 1) {
-    const mortgageInterest = mortgageBalance * mortgageRateM;
-    const principalPayment = Math.min(
-      mortgageBalance,
-      Math.max(0, scheduledMortgagePayment + inputs.extraPayment - mortgageInterest)
-    );
-    mortgageBalance = Math.max(0, mortgageBalance - principalPayment);
-
-    reborrowIntoPortfolio(principalPayment);
-
-    const helocInterest = helocBalance * helocRateM;
-    cumulativeHelocInterest += helocInterest;
-    yearlyDeductibleInterest += helocInterest;
-    currentYearHelocInterest += helocInterest;
-
-    if (scenario.helocPaymentStrategy === "self_capitalize") {
-      helocBalance += helocInterest;
-    } else if (scenario.helocPaymentStrategy === "interest_only_cashflow") {
-      cumulativeExternalContributions += helocInterest;
-    } else if (scenario.helocPaymentStrategy === "interest_plus_principal") {
-      cumulativeExternalContributions += helocInterest;
-      const principalResult = applyAmountWithRemainder(helocBalance, scenario.helocPrincipalPayment);
-      helocBalance = principalResult.nextBalance;
-      cumulativeExternalContributions += principalResult.applied;
-    }
-
-    portfolio *= 1 + portfolioPriceRateM;
-
-    const dividendsGross = Math.max(0, portfolio * portfolioDividendRateM);
-    const dividendTax = scenario.taxDividends ? dividendsGross * inputs.dividendTaxRate : 0;
-    const dividendsNet = Math.max(0, dividendsGross - dividendTax);
-    yearlyDividendTaxPaid += dividendTax;
-
-    if (scenario.dividendUse === "compound") {
-      const compoundAmount =
-        scenario.taxDividends || scenario.compoundNetDividends ? dividendsNet : dividendsGross;
-      portfolio += compoundAmount;
-      portfolioCostBasis += compoundAmount;
-    } else if (scenario.dividendUse === "repay_mortgage") {
-      const result = applyAmountWithRemainder(mortgageBalance, dividendsNet);
-      mortgageBalance = result.nextBalance;
-      reborrowIntoPortfolio(result.applied);
-      cashBalance += result.remainder;
-    } else if (scenario.dividendUse === "pay_heloc") {
-      const result = applyAmountWithRemainder(helocBalance, dividendsNet);
-      helocBalance = result.nextBalance;
-      cashBalance += result.remainder;
-    }
-
-    let taxRefundApplied = 0;
-    if (month % 12 === 0 || month === totalMonths) {
-      peakAnnualHelocInterest = Math.max(peakAnnualHelocInterest, currentYearHelocInterest);
-      currentYearHelocInterest = 0;
-      const grossTaxRefund = Math.max(0, yearlyDeductibleInterest * inputs.taxRate);
-      const netTaxRefund = scenario.netTaxRefundOfDividendTax
-        ? Math.max(0, grossTaxRefund - yearlyDividendTaxPaid)
-        : grossTaxRefund;
-      if (netTaxRefund > 0) {
-        pendingTaxRefunds.push({
-          dueMonth: month + inputs.taxRefundLagMonths,
-          amount: netTaxRefund,
-        });
-      }
-
-      yearlyDeductibleInterest = 0;
-      yearlyDividendTaxPaid = 0;
-    }
-
-    let taxRefundReceived = 0;
-    pendingTaxRefunds = pendingTaxRefunds.filter((item) => {
-      if (item.dueMonth <= month) {
-        taxRefundReceived += item.amount;
-        return false;
-      }
-      return true;
-    });
-
-    if (taxRefundReceived > 0) {
-      cumulativeTaxRefund += taxRefundReceived;
-      if (scenario.taxRefundUse === "reinvest") {
-        portfolio += taxRefundReceived;
-        portfolioCostBasis += taxRefundReceived;
-        taxRefundApplied = taxRefundReceived;
-      } else if (scenario.taxRefundUse === "repay_mortgage") {
-        const result = applyAmountWithRemainder(mortgageBalance, taxRefundReceived);
-        mortgageBalance = result.nextBalance;
-        reborrowIntoPortfolio(result.applied);
-        taxRefundApplied = result.applied;
-        cashBalance += result.remainder;
-      } else if (scenario.taxRefundUse === "pay_heloc") {
-        const result = applyAmountWithRemainder(helocBalance, taxRefundReceived);
-        helocBalance = result.nextBalance;
-        taxRefundApplied = result.applied;
-        cashBalance += result.remainder;
-      } else if (scenario.taxRefundUse === "cash") {
-        cashBalance += taxRefundReceived;
-      }
-    }
-
-    const pendingTaxRefundReceivable = pendingTaxRefunds.reduce((sum, item) => sum + item.amount, 0);
-
-    const homeEquity = inputs.homeValue - mortgageBalance;
-    const smithValuePreTax =
-      portfolio +
-      cashBalance +
-      pendingTaxRefundReceivable -
-      helocBalance -
-      cumulativeExternalContributions;
-    const liquidationTax = estimateLiquidationTax(
-      portfolio,
-      portfolioCostBasis,
-      inputs.taxRate,
-      inputs.capitalGainsInclusionRate
-    );
-    const smithValueAfterTax =
-      (portfolio - liquidationTax) +
-      cashBalance +
-      pendingTaxRefundReceivable -
-      helocBalance -
-      cumulativeExternalContributions;
-    const netPosition = homeEquity + smithValuePreTax;
-    const netAfterTax = homeEquity + smithValueAfterTax;
-    maxHelocBalance = Math.max(maxHelocBalance, helocBalance);
-
-    timeline.push({
-      month,
-      year: Math.floor((month - 1) / 12) + 1,
-      mortgageBalance,
-      helocBalance,
-      portfolio,
-      smithValuePreTax,
-      smithValueAfterTax,
-      netPosition,
-      netAfterTax,
-      liquidationTax,
-      taxRefundApplied,
-      cashBalance,
-      pendingTaxRefundReceivable,
-      cumulativeExternalContributions,
-    });
-  }
-
-  const yearly = timeline.filter((entry) => entry.month % 12 === 0 || entry.month === totalMonths);
-  const last = timeline[timeline.length - 1];
-
-  return {
-    scenario,
-    yearly,
-    summary: {
-      finalMortgageBalance: last.mortgageBalance,
-      finalHelocBalance: last.helocBalance,
-      finalPortfolio: last.portfolio,
-      finalSmithValuePreTax: last.smithValuePreTax,
-      finalSmithValueAfterTax: last.smithValueAfterTax,
-      finalPreTaxNetPosition: last.netPosition,
-      finalAfterTaxNetPosition: last.netAfterTax,
-      finalEstimatedLiquidationTax: last.liquidationTax,
-      finalCashBalance: last.cashBalance,
-      pendingTaxRefundReceivable: last.pendingTaxRefundReceivable,
-      cumulativeExternalContributions: last.cumulativeExternalContributions,
-      maxHelocBalance,
-      peakAnnualHelocInterest,
-      cumulativeHelocInterest,
-      cumulativeTaxRefund,
-    },
-  };
+  return SMModel.simulate(inputs, scenario);
 }
 
 function runComparison(inputs) {
@@ -542,13 +320,16 @@ function runComparison(inputs) {
       ...scenario,
       color: SCENARIO_COLOR_PALETTE[index % SCENARIO_COLOR_PALETTE.length],
     };
-    return runScenarioSimulation(inputs, withColor);
+    const resolved = resolveScenarioInvestment(inputs, scenario.investment);
+    withColor.name = `${scenario.name} · ${resolved.label}`;
+    return runScenarioSimulation(resolved.inputs, withColor);
   });
 }
 
 function buildCurrentPlanScenario(inputs) {
   return {
     name: "Current Plan",
+    marginRatio: inputs.marginRatio,
     enableSmith: true,
     dividendUse: inputs.dividendUse,
     taxRefundUse: inputs.taxRefundUse,
@@ -670,7 +451,7 @@ function runSensitivity(inputs) {
   };
   const currentScenario = buildCurrentPlanScenario(inputs);
   const conservativeScenario = {
-    ...DEFAULT_SCENARIOS[1],
+    ...DEFAULT_SCENARIOS[4],
     name: "Conservative Smith",
     taxDividends: inputs.taxDividends,
     netTaxRefundOfDividendTax: inputs.netTaxRefundOfDividendTax,
@@ -742,7 +523,7 @@ function drawCustomChart(yearly) {
   ctx.clearRect(0, 0, w, h);
   if (!yearly.length) return;
 
-  const values = yearly.flatMap((d) => [d.portfolio, d.helocBalance, d.netAfterTax]);
+  const values = yearly.flatMap((d) => [d.portfolio, d.helocBalance, d.marginBalance, d.netAfterTax]);
   let minY = Math.min(...values);
   let maxY = Math.max(...values);
 
@@ -777,6 +558,7 @@ function drawCustomChart(yearly) {
   const lines = [
     { key: "portfolio", color: "#2f8f82", label: "Portfolio" },
     { key: "helocBalance", color: "#d96a2b", label: "HELOC" },
+    { key: "marginBalance", color: "#8b4ad3", label: "Margin Loan" },
     { key: "netAfterTax", color: "#2e4ccf", label: "After-tax Economic Net" },
   ];
 
@@ -867,7 +649,7 @@ function drawComparisonChart(results) {
     ctx.fillRect(legendX, legendY, 12, 12);
     ctx.fillStyle = "#132021";
     ctx.font = "12px sans-serif";
-    ctx.fillText(result.scenario.name, legendX + 18, legendY + 11);
+    ctx.fillText(result.scenario.name, legendX + 18, legendY + 11, w - legendX - 35);
     legendY += 18;
   });
 }
@@ -876,16 +658,22 @@ function renderMetrics(summary) {
   const metricItems = [
     ["Final Mortgage", summary.finalMortgageBalance],
     ["Final HELOC", summary.finalHelocBalance],
+    ["Final Margin Loan", summary.finalMarginBalance],
+    ["Mortgage Paid Off", payoffText(summary)],
+    ["Age at Mortgage Payoff", summary.mortgagePayoffAge === null ? "Beyond forecast" : summary.mortgagePayoffAge.toFixed(1)],
+    ["Ending Age", String(summary.endingAge)],
+    ["Total Distribution Tax", summary.cumulativeDividendTax],
+    ["Total Margin Interest", summary.cumulativeMarginInterest],
     ["Final Portfolio", summary.finalPortfolio],
     ["Final Smith-Only Value (After-tax)", summary.finalSmithValueAfterTax],
     ["Final Net Position (Pre-tax)", summary.finalPreTaxNetPosition],
     ["Est. Liquidation Tax", summary.finalEstimatedLiquidationTax],
     ["Final After-tax Economic Closeout Net", summary.finalAfterTaxNetPosition],
     ["Ending Cash (Uninvested)", summary.finalCashBalance],
-    ["Pending Tax Refund Receivable", summary.pendingTaxRefundReceivable],
+    ["Pending Tax Settlement (+ refund / − payable)", summary.pendingTaxRefundReceivable],
     ["External Cash Required", summary.cumulativeExternalContributions],
     ["Total HELOC Interest", summary.cumulativeHelocInterest],
-    ["Total Tax Refund", summary.cumulativeTaxRefund],
+    ["Tax Refunds Received (After Settlement)", summary.cumulativeTaxRefund],
     ["Weighted Price Return", percentText(summary.weightedPriceReturn)],
     ["Weighted Dividend Yield", percentText(summary.weightedDividendYield)],
   ];
@@ -906,11 +694,11 @@ function renderYearlyRows(yearly) {
       const netClass = d.netAfterTax < 0 ? "negative" : "";
       const smithClass = d.smithValueAfterTax < 0 ? "negative" : "";
       return `<tr>
-        <td>${d.year}</td>
+        <td>${d.year} / ${d.age.toFixed(1)}</td>
         <td>${currency.format(d.mortgageBalance)}</td>
-        <td>${currency.format(d.helocBalance)}</td>
+        <td>${currency.format(d.helocBalance)}</td><td>${currency.format(d.marginBalance)}</td>
         <td>${currency.format(d.portfolio)}</td>
-        <td>${currency.format(d.taxRefundApplied)}</td>
+        <td>${currency.format(d.taxRefundApplied)}</td><td>${currency.format(d.annualDividendTax)}</td><td>${currency.format(d.annualInterestDeductionBenefit)}</td>
         <td class="${smithClass}">${currency.format(d.smithValueAfterTax)}</td>
         <td class="${netClass}">${currency.format(d.netAfterTax)}</td>
         <td>${currency.format(d.netPosition)}</td>
@@ -922,7 +710,7 @@ function renderYearlyRows(yearly) {
 function renderComparisonSummary(results) {
   if (!results.length) {
     compareSummaryRowsEl.innerHTML =
-      '<tr><td colspan="5" style="text-align:left;">Enable at least one scenario to compare.</td></tr>';
+      '<tr><td colspan="11" style="text-align:left;">Enable at least one scenario to compare.</td></tr>';
     return;
   }
 
@@ -930,10 +718,13 @@ function renderComparisonSummary(results) {
     .map((result) => {
       const netClass = result.summary.finalAfterTaxNetPosition < 0 ? "negative" : "";
       return `<tr>
-        <td>${result.scenario.name}</td>
+        <td>${escapeHtml(result.scenario.name)}${result.summary.warnings.map(w => `<small class="forecast-warning">${escapeHtml(w)}</small>`).join("")}</td>
         <td>${currency.format(result.summary.finalMortgageBalance)}</td>
-        <td>${currency.format(result.summary.finalHelocBalance)}</td>
+        <td>${currency.format(result.summary.finalHelocBalance)}</td><td>${currency.format(result.summary.finalMarginBalance)}</td>
         <td>${currency.format(result.summary.finalPortfolio)}</td>
+        <td>${currency.format(result.summary.finalPortfolio - result.summary.finalEstimatedLiquidationTax - result.summary.finalHelocBalance - result.summary.finalMarginBalance)}</td>
+        <td>${currency.format(result.summary.finalEstimatedLiquidationTax)}</td><td>${currency.format(result.summary.cumulativeExternalContributions)}</td>
+        <td>${payoffText(result.summary)}</td><td>${result.summary.endingAge}</td>
         <td class="${netClass}">${currency.format(result.summary.finalAfterTaxNetPosition)}</td>
       </tr>`;
     })
@@ -949,7 +740,7 @@ function renderComparisonYearlyRows(results) {
 
   compareYearlyHeadEl.innerHTML =
     `<tr><th>Year</th>${results
-      .map((result) => `<th>${result.scenario.name} After-tax Economic Net</th>`)
+      .map((result) => `<th>${escapeHtml(result.scenario.name)} After-tax Economic Net</th>`)
       .join("")}</tr>`;
 
   const years = results[0].yearly;
@@ -973,7 +764,7 @@ function renderSensitivityMatrix(matrix) {
     .map((row) => {
       const deltaClass = row.deltaVsBaseline < 0 ? "negative" : "";
       return `<tr>
-        <td>${row.scenario.name}</td>
+        <td>${escapeHtml(row.scenario.name)}</td>
         <td>${currency.format(row.summary.finalAfterTaxNetPosition)}</td>
         <td class="${deltaClass}">${formatSignedCurrency(row.deltaVsBaseline)}</td>
         <td>${currency.format(row.summary.maxHelocBalance)}</td>
@@ -1031,6 +822,7 @@ function renderSensitivityHeatmap(heatmap) {
 function labelForDividendUse(value) {
   if (value === "compound") return "Compound in portfolio";
   if (value === "repay_mortgage") return "Repay mortgage";
+  if (value === "pay_interest") return "Pay HELOC interest; keep excess cash";
   return "Pay down HELOC";
 }
 
@@ -1063,15 +855,16 @@ function renderStrategySummary(inputs, summary) {
     `Dividends: ${labelForDividendUse(inputs.dividendUse)}. ` +
     `Tax refund: ${labelForTaxRefundUse(inputs.taxRefundUse)}. ` +
     `Tax dividends: ${yesNo(inputs.taxDividends)}. ` +
-    `Net refund of dividend tax: ${yesNo(inputs.netTaxRefundOfDividendTax)}. ` +
+    `Settle distribution tax annually: ${yesNo(inputs.netTaxRefundOfDividendTax)}. ` +
     `Refund lag: ${inputs.taxRefundLagMonths} month(s). ` +
     `HELOC strategy: ${labelForHelocStrategy(inputs.helocPaymentStrategy)}. ` +
     `Smith-only value excludes home equity and isolates the strategy sleeve (portfolio/cash/refunds minus HELOC/external cash). ` +
     `After-tax closeout includes selling the full portfolio, taxes unrealized gains using your inclusion and marginal tax inputs, ` +
-    `adds uninvested cash and pending tax refunds, and subtracts any external cash used to service HELOC interest/principal.`;
+    `adds uninvested cash and pending tax settlements, and subtracts HELOC/margin debt and external loan-servicing cash. ` + summary.warnings.join(" ");
 }
 
 function runAndRender() {
+  updateTaxRateFromBracket();
   const inputs = parseInputs();
   const custom = runCustomSimulation(inputs);
   const comparison = runComparison(inputs);
@@ -1092,13 +885,16 @@ function runAndRender() {
 }
 
 holdingsRowsEl.addEventListener("click", (event) => {
+  if (event.target.classList.contains("fetch-holding")) { fetchHoldingRow(event.target.closest("tr")); return; }
   if (!event.target.classList.contains("remove-holding")) return;
   const row = event.target.closest("tr");
   if (row) row.remove();
+  runAndRender();
 });
 
 addHoldingEl.addEventListener("click", () => {
   addHoldingRow();
+  fetchHoldingRow(holdingsRowsEl.lastElementChild);
 });
 
 taxBracketEl.addEventListener("change", () => {
@@ -1112,6 +908,7 @@ helocStrategyEl.addEventListener("change", () => {
 tabButtons.forEach((btn) => {
   btn.addEventListener("click", () => {
     activateTab(btn.dataset.tabTarget);
+    runAndRender();
   });
 });
 
@@ -1126,6 +923,15 @@ compareConfigRowsEl.addEventListener("click", (event) => {
 compareConfigRowsEl.addEventListener("change", (event) => {
   const row = event.target.closest("tr");
   if (!row) return;
+  if (event.target.classList.contains("s-investment") && event.target.value !== "mix") {
+    const symbol = event.target.value;
+    let holdingRow = [...holdingsRowsEl.querySelectorAll("tr")].find(r => r.querySelector(".h-symbol").value === symbol);
+    if (!holdingRow) {
+      addHoldingRow({symbol, allocation: 0, priceReturn: 5, dividendYield: 2});
+      holdingRow = holdingsRowsEl.lastElementChild;
+    }
+    fetchHoldingRow(holdingRow);
+  }
   if (event.target.classList.contains("s-heloc")) {
     updateScenarioRowPrincipalVisibility(row);
   }
@@ -1160,3 +966,5 @@ updateTaxRateFromBracket();
 updateHelocPrincipalFieldVisibility();
 activateTab("customTabPanel");
 runAndRender();
+
+initializeMarketControls();

@@ -15,7 +15,7 @@
           and tax refund strategy over time.
         </p>
         <p class="hero-callout">
-          <strong>Most advanced Smith Maneuver estimator available (Smith Manoeuvre):</strong> ACB-aware after-tax
+          <strong>Compare your Smith Manoeuvre options:</strong> ACB-aware after-tax
           closeout, dividend-tax/refund netting controls, refund timing lag, external cash required
           tracking for HELOC servicing, readvanceable prepayment logic, and strategy + sensitivity
           comparisons under matched assumptions.
@@ -26,8 +26,9 @@
         <h2>Inputs</h2>
         <form id="sim-form" class="form-sections">
           <fieldset class="input-section">
-            <legend>Mortgage &amp; Home</legend>
+            <legend>You, Mortgage &amp; Home</legend>
             <div class="section-grid">
+              <label>Current age<input id="age" type="number" min="18" max="100" value="35" required /></label>
               <label>
                 Initial mortgage ($)
                 <input type="number" id="mortgagePrincipal" min="0" step="1000" value="1200000" required />
@@ -46,7 +47,7 @@
               </label>
               <label>
                 Simulation horizon (years)
-                <input type="number" id="horizonYears" min="1" step="1" value="25" required />
+                <input type="number" id="horizonYears" max="60" min="1" step="1" value="25" required />
               </label>
               <label>
                 Home value ($)
@@ -57,19 +58,25 @@
 
           <fieldset class="input-section">
             <legend>Portfolio &amp; HELOC</legend>
+            <p class="hint">Existing portfolio is separate from new borrowing. Available HELOC room grows as the mortgage is paid down, subject to modeled 65% HELOC and 80% combined loan-to-value limits.</p>
             <div class="section-grid">
               <label>
-                Initial portfolio ($)
+                Existing portfolio market value ($)
                 <input type="number" id="startingPortfolio" min="0" step="100" value="0" required />
               </label>
               <label>
-                Initial portfolio ACB ($)
+                Existing portfolio cost basis / ACB ($)
                 <input type="number" id="startingPortfolioAcb" min="0" step="100" value="0" required />
               </label>
               <label>
                 Fallback annual price return (%)
-                <input type="number" id="fallbackPortfolioReturn" step="0.01" value="5" required />
+                <input type="number" id="fallbackPortfolioReturn" min="-99" max="100" step="0.01" value="5" required />
               </label>
+              <label>Initial HELOC withdrawal to invest now ($)<input type="number" id="initialWithdrawal" min="0" step="1000" value="0" required /></label>
+              <label>Available HELOC room today ($)<input type="number" id="initialHelocRoom" min="0" step="1000" value="60000" required /></label>
+              <label>Margin loan annual rate (%)<input type="number" id="marginRate" min="0" max="100" step="0.01" value="6" required /></label>
+              <label>Custom strategy: extra margin borrowing (% of new investment)<input type="number" id="marginRatio" min="0" max="100" step="1" value="0" required /></label>
+              <label>Margin maintenance debt / portfolio limit (%)<input type="number" id="marginMaintenanceLtv" min="1" max="99" value="50" required /></label>
               <label>
                 HELOC annual rate (%)
                 <input type="number" id="helocRate" min="0" step="0.01" value="4.6" required />
@@ -95,19 +102,21 @@
               <label>
                 Tax bracket preset
                 <select id="taxBracket">
-                  <option value="custom" selected>Custom</option>
-                  <option value="0.205">20.50% (Federal lower bracket)</option>
-                  <option value="0.2965">29.65% (Example middle bracket)</option>
-                  <option value="0.3791">37.91% (Example upper-middle bracket)</option>
-                  <option value="0.4341">43.41% (Example high bracket)</option>
+                  <option value="highest" selected>Ontario highest combined bracket — 53.53%</option>
+                  <option value="income">Estimate from gross income — Ontario 2026</option>
+                  <option value="0.1905">Ontario lower bracket — 19.05%</option>
+                  <option value="0.2965">Ontario middle bracket — 29.65%</option>
+                  <option value="0.4341">Ontario upper bracket — 43.41%</option>
+                  <option value="custom">Custom rates / other province</option>
                 </select>
               </label>
+              <label id="grossIncomeWrap">Annual gross income ($)<input type="number" id="grossIncome" min="0" step="1000" value="300000" required /></label>
               <label>
                 Marginal tax rate (%)
                 <input type="number" id="taxRate" min="0" max="100" step="any" value="53.53" required />
               </label>
               <label>
-                Dividend tax rate (%)
+                Eligible Canadian dividend tax rate (%)
                 <input type="number" id="dividendTaxRate" min="0" max="100" step="any" value="39.34" required />
               </label>
               <label>
@@ -115,14 +124,14 @@
                 <input type="number" id="capitalGainsInclusionRate" min="0" max="100" step="0.1" value="50" required />
               </label>
               <label>
-                Tax dividends in annual cashflow?
+                Include distribution taxes?
                 <select id="taxDividends">
                   <option value="yes" selected>Yes</option>
                   <option value="no">No</option>
                 </select>
               </label>
               <label>
-                Net tax refund of dividend tax?
+                Settle distribution taxes annually?
                 <select id="netTaxRefundOfDividendTax">
                   <option value="yes" selected>Yes</option>
                   <option value="no">No</option>
@@ -141,6 +150,7 @@
                   <option value="compound" selected>Compound in portfolio</option>
                   <option value="repay_mortgage">Use dividends to repay mortgage</option>
                   <option value="pay_heloc">Use dividends to pay down HELOC</option>
+                  <option value="pay_interest">Pay HELOC interest; keep excess as cash</option>
                 </select>
               </label>
               <label>
@@ -149,81 +159,23 @@
                   <option value="reinvest">Reinvest in portfolio</option>
                   <option value="repay_mortgage" selected>Use tax refund to repay mortgage</option>
                   <option value="pay_heloc">Use tax refund to pay down HELOC</option>
-                  <option value="cash">Keep as cash (outside model)</option>
+                  <option value="cash">Keep as uninvested cash</option>
                 </select>
               </label>
             </div>
           </fieldset>
 
+          <p class="hint" id="taxHelp">Ontario 2026 rates. Income mode models progressive brackets, basic personal amounts, eligible dividend credits and surtax. Gross income is treated as taxable income before investment activity; excludes CPP/EI, health premium, AMT and other credits. Tax rates and income are held constant over the forecast.</p>
+          <p class="hint">Self-capitalization assumes a separate, traceable advance actually pays each interest bill, rather than leaving interest unpaid. Margin loans are paid from cashflow. Margin borrowing is non-recursive: 30% adds $30 per $100 of initial/new HELOC investment, without re-leveraging gains or dividends. Maintenance breaches are flagged; forced sales are not simulated.</p>
           <fieldset class="holdings-fieldset">
             <legend>Borrowed funds allocation (stocks / ETFs)</legend>
-            <p class="hint">
-              Use allocation %, expected annual price return %, and dividend yield %. If all allocations are zero,
-              fallback return is used.
-            </p>
-            <p class="hint">
-              Hover or focus each category below for Canadian SM notes. Expected returns are illustrative long-term
-              estimates.
-            </p>
-            <div class="strategy-rollovers" aria-label="Canadian ETF category notes">
-              <article class="rollover">
-                <button type="button" class="rollover-trigger" aria-describedby="tip-dividend-tilt">
-                  Dividend Tilt: VDY, XEI, CDZ
-                </button>
-                <div id="tip-dividend-tilt" class="rollover-panel" role="tooltip">
-                  <p><strong>Typical SM Allocation:</strong> 50% - 100% (for pure SM cash-flow accounts)</p>
-                  <p><strong>Expected Dividend Yield:</strong> 4.5% - 5.0% (almost entirely eligible)</p>
-                  <p><strong>Expected Annual Price Return:</strong> 2.0% - 3.5%</p>
-                  <p>
-                    <strong>Verdict:</strong> Administrative gold standard. High yield helps service HELOC interest,
-                    usually with zero or near-zero ROC.
-                  </p>
-                </div>
-              </article>
-              <article class="rollover">
-                <button type="button" class="rollover-trigger" aria-describedby="tip-core-canadian">
-                  Core Canadian Equity: XIU, XIC, VCN, ZCN
-                </button>
-                <div id="tip-core-canadian" class="rollover-panel" role="tooltip">
-                  <p><strong>Typical SM Allocation:</strong> 50% - 100%</p>
-                  <p><strong>Expected Dividend Yield:</strong> 2.8% - 3.2% (vast majority eligible)</p>
-                  <p><strong>Expected Annual Price Return:</strong> 4.0% - 5.0%</p>
-                  <p>
-                    <strong>Verdict:</strong> Excellent starting point. Better sector diversification versus
-                    dividend-heavy ETFs while keeping clean tax reporting.
-                  </p>
-                </div>
-              </article>
-              <article class="rollover">
-                <button type="button" class="rollover-trigger" aria-describedby="tip-all-in-one">
-                  All-in-One: VEQT, XEQT
-                </button>
-                <div id="tip-all-in-one" class="rollover-panel" role="tooltip">
-                  <p><strong>Typical SM Allocation:</strong> 0% (for strict tax-optimized SM accounts)</p>
-                  <p><strong>Expected Dividend Yield:</strong> 1.8% - 2.2% (mixed distribution types)</p>
-                  <p><strong>Expected Annual Price Return:</strong> 5.5% - 6.5%</p>
-                  <p>
-                    <strong>Verdict:</strong> Strong total-return funds, but distributions are tax-mixed (foreign
-                    income, possible phantom distributions, occasional ROC). Usually better if distributions are fully
-                    reinvested.
-                  </p>
-                </div>
-              </article>
-              <article class="rollover">
-                <button type="button" class="rollover-trigger" aria-describedby="tip-individual-stocks">
-                  Individual Banks: RY, TD, BNS, BMO, CM, NA
-                </button>
-                <div id="tip-individual-stocks" class="rollover-panel" role="tooltip">
-                  <p><strong>Typical SM Allocation:</strong> 0% - 50% (often paired with ETFs)</p>
-                  <p><strong>Expected Dividend Yield:</strong> 4.0% - 6.0% (generally eligible)</p>
-                  <p><strong>Expected Annual Price Return:</strong> 3.0% - 6.0%</p>
-                  <p>
-                    <strong>Verdict:</strong> Can be tax-efficient and cash-flow friendly, but concentration risk is
-                    much higher than ETF baskets. Many investors cap single-stock weight and combine with broad ETFs.
-                  </p>
-                </div>
-              </article>
+            <p class="hint">Select a Canadian-listed ETF or bank stock to fetch its latest close, trailing 12-month distribution yield and historical annualized price returns. History excludes dividends, which the forecast adds separately. Historical performance is an assumption, not a prediction. BMO, RY, TD and CM are stocks.</p>
+            <div class="market-controls">
+              <label>Historical period for forecast<select id="historyPeriod"><option value="1">1 year</option><option value="3">3 years</option><option value="5" selected>5 years</option><option value="10">10 years</option></select></label>
+              <button type="button" id="refreshMarket" class="small-btn">Refresh market data</button>
             </div>
+            <p class="hint">Eligible distribution share is an editable tax assumption: 100% for bank stocks, 0% for foreign equity funds, and an illustrative 25% for XEQT/VEQT. Verify the issuer's annual tax breakdown. Remaining distributions are modeled as ordinary income; ROC, distributed gains, foreign tax credits and phantom distributions are not modeled.</p>
+            <p id="marketStatus" class="hint" role="status">Editable illustrative assumptions until market data is fetched.</p>
             <div class="table-wrap">
               <table class="holding-table">
                 <thead>
@@ -231,7 +183,7 @@
                     <th>Ticker</th>
                     <th>Allocation %</th>
                     <th>Price Return %</th>
-                    <th>Dividend Yield %</th>
+                    <th>Distribution Yield %</th><th>Eligible Share %</th><th>Market Data / Assumptions</th>
                     <th></th>
                   </tr>
                 </thead>
@@ -263,11 +215,11 @@
             <table>
               <thead>
                 <tr>
-                  <th>Year</th>
+                  <th>Year / Age</th>
                   <th>Mortgage Balance</th>
-                  <th>HELOC Balance</th>
+                  <th>HELOC Balance</th><th>Margin Loan</th>
                   <th>Portfolio</th>
-                  <th>Tax Refund Applied</th>
+                  <th>Tax Refund Received</th><th>Annual Distribution Tax</th><th>Annual Interest Tax Benefit</th>
                   <th>Smith-Only Value (After-tax)</th>
                   <th>After-tax Economic Closeout Net</th>
                   <th>Net Position (Pre-tax)</th>
@@ -280,7 +232,7 @@
 
         <div id="compareTabPanel" class="tab-panel">
           <p class="summary">
-            A/B/C are preloaded defaults. Enable/disable them and add as many custom scenarios as you want.
+            Presets run from most leverage to least leverage. Customize each strategy and investment separately. Shared mix uses the holdings allocations above; single-ticker comparisons use that ticker’s row assumptions or fetched history. Lower leverage does not guarantee lower market risk.
           </p>
           <div class="table-wrap">
             <table class="scenario-table">
@@ -288,13 +240,13 @@
                 <tr>
                   <th>Use</th>
                   <th>Name</th>
-                  <th>Smith?</th>
+                  <th>Investment</th><th>Margin % of investment</th><th>Smith?</th>
                   <th>Dividend Handling</th>
                   <th>Tax Refund Handling</th>
                   <th>HELOC Strategy</th>
                   <th>HELOC Principal /mo</th>
                   <th>Tax Dividends?</th>
-                  <th>Refund Net of Div Tax?</th>
+                  <th>Settle Distribution Tax Annually?</th>
                   <th>Compound Net Div?</th>
                   <th></th>
                 </tr>
@@ -309,9 +261,9 @@
                 <tr>
                   <th>Scenario</th>
                   <th>Final Mortgage</th>
-                  <th>Final HELOC</th>
+                  <th>Final HELOC</th><th>Final Margin Loan</th>
                   <th>Final Portfolio</th>
-                  <th>Final After-tax Economic Closeout Net</th>
+                  <th>After-tax Portfolio Less Loans</th><th>Liquidation Tax</th><th>External Cash Required</th><th>Mortgage Paid Off</th><th>Ending Age</th><th>Final After-tax Economic Closeout Net</th>
                 </tr>
               </thead>
               <tbody id="compareSummaryRows"></tbody>
@@ -340,7 +292,7 @@
                   <th>Final After-tax Economic Net</th>
                   <th>Vs Mortgage-only</th>
                   <th>Max HELOC</th>
-                  <th>Peak Annual HELOC Interest</th>
+                  <th>Peak Annual Loan Interest</th>
                   <th>Years Below Baseline</th>
                 </tr>
               </thead>
@@ -367,6 +319,11 @@
         </div>
       </section>
 
+      <section class="card">
+        <h2>Forecast assumptions &amp; sources</h2>
+        <p class="hint">After-tax closeout sells the portfolio, pays capital gains tax, repays HELOC and margin debt, includes cash and pending tax settlements, and subtracts external loan-servicing cash. Mortgage payoff means the mortgage alone is cleared; investment loans may remain. Freed scheduled mortgage payments accumulate as cash after payoff so comparisons keep the same monthly mortgage budget. Results assume fixed rates and returns, monthly distributions and immediate readvancing. Mortgage penalties, prepayment restrictions and trading costs are excluded.</p>
+        <p class="hint">Sources: <a href="https://www.canada.ca/en/revenue-agency/services/tax/individuals/tax-rates-brackets/current-year.html">CRA 2026 tax brackets</a>, <a href="https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4032-payroll-deductions-tables/t4032on-jan/t4032on-january-general-information.html">Ontario surtax and personal amounts</a>, <a href="https://www.canada.ca/en/revenue-agency/services/tax/technical-information/income-tax/income-tax-folios-index/series-3-property-investments-savings-plans/series-3-property-investments-savings-plan-folio-6-interest/income-tax-folio-s3-f6-c1-interest-deductibility.html">CRA interest deductibility</a>, <a href="https://www.blackrock.com/ca/investors/en/resources/faqs/distributions-and-tax">ETF distribution tax types</a>. Market prices and distributions: Yahoo Finance, delayed and subject to provider availability.</p>
+      </section>
       <section class="site-disclaimer" aria-label="Important disclaimer">
         <p class="site-disclaimer-title">Smith Maneuver Calculator (Smith Manoeuvre) - Built for Canadian homeowners</p>
         <p>
@@ -465,10 +422,12 @@
 
     <template id="holding-row-template">
       <tr>
-        <td><input class="h-symbol" type="text" maxlength="12" placeholder="e.g. VFV" /></td>
+        <td><select class="h-symbol" aria-label="Investment ticker"></select></td>
         <td><input class="h-allocation" type="number" min="0" step="1" value="0" /></td>
-        <td><input class="h-return" type="number" step="0.01" value="6" /></td>
+        <td><input class="h-return" type="number" min="-99" max="100" step="0.01" value="6" /></td>
         <td><input class="h-dividend" type="number" min="0" step="0.01" value="2" /></td>
+        <td><input class="h-eligible" type="number" min="0" max="100" value="100" aria-label="Eligible Canadian distribution share" /></td>
+        <td><span class="h-data hint">Illustrative manual assumptions</span><button type="button" class="small-btn fetch-holding">Fetch data</button></td>
         <td><button type="button" class="small-btn remove-holding">Remove</button></td>
       </tr>
     </template>
@@ -477,19 +436,21 @@
       <tr>
         <td><input class="s-enabled" type="checkbox" checked /></td>
         <td><input class="s-name" type="text" maxlength="40" /></td>
+        <td><select class="s-investment" aria-label="Scenario investment"></select></td>
+        <td><input class="s-margin" type="number" min="0" max="100" value="0" aria-label="Additional margin borrowing percent" /></td>
         <td><input class="s-smith" type="checkbox" checked /></td>
         <td>
           <select class="s-dividend">
             <option value="compound">Compound</option>
             <option value="repay_mortgage">Repay Mortgage</option>
-            <option value="pay_heloc">Pay HELOC</option>
+            <option value="pay_heloc">Pay HELOC</option><option value="pay_interest">Pay Interest</option>
           </select>
         </td>
         <td>
           <select class="s-taxrefund">
             <option value="reinvest">Reinvest</option>
             <option value="repay_mortgage">Repay Mortgage</option>
-            <option value="pay_heloc">Pay HELOC</option>
+            <option value="pay_heloc">Pay HELOC</option><option value="pay_interest">Pay Interest</option>
             <option value="cash">Cash</option>
           </select>
         </td>
@@ -508,6 +469,8 @@
       </tr>
     </template>
 
+    <script src="model.js"></script>
+    <script src="market.js"></script>
     <script src="app.js"></script>
   </body>
 </html>

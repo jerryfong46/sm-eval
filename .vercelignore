@@ -1,0 +1,11 @@
+# Deploy only the calculator and its market-data endpoint.
+Scott-Mission-Data-Systems-Assessment.md
+output/
+outputs/
+tmp/
+tools/
+tests/
+server.py
+README.md
+**/__pycache__/
+**/*.pyc

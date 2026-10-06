@@ -1,95 +1,58 @@
 # Smith Manoeuvre Simulator
 
-A simple static web app to model mortgage paydown and portfolio growth under a Smith Manoeuvre-style strategy.
+Compare Canadian mortgage paydown and leveraged investment strategies, with distribution taxes, annual tax settlements and after-tax portfolio liquidation.
 
-## What it does
+## Features
 
-- Calculates monthly mortgage amortization (plus optional extra payments)
-- Re-borrows monthly principal paydown to a HELOC and invests it
-- When Smith is enabled, mortgage paydowns from dividends/tax refunds are also re-advanced and invested
-- Lets users define a holdings mix (stocks/ETFs), allocation, price return assumptions, and dividend yields
-- Supports separate initial portfolio market value and adjusted cost base (ACB)
-- Supports dividend strategy:
-  - compound in portfolio
-  - repay mortgage
-  - pay down HELOC
-- Supports tax refund strategy:
-  - reinvest
-  - repay mortgage
-  - pay down HELOC
-  - keep as cash
-- Supports HELOC strategy:
-  - self-capitalize interest
-  - pay interest from cashflow
-  - pay interest plus monthly principal
-- Supports tax treatment controls:
-  - tax dividends using a user-defined effective dividend tax rate
-  - optionally net annual tax refunds by annual dividend tax paid
-  - tax refund lag (0 or 12 months)
-- Includes a Strategy Compare tab with presets:
-  - A) Mortgage only (no Smith Manoeuvre)
-  - B) Conservative Smith (dividends to HELOC, self-capitalized HELOC interest, tax refund net of dividend tax to HELOC)
-  - C) Aggressive Smith (self-capitalize HELOC interest, compound dividends, tax refund to mortgage)
-- Strategy Compare is fully configurable:
-  - enable/disable any scenario
-  - add unlimited custom scenarios
-  - choose HELOC payment strategy, dividend handling, tax refund handling, dividend tax treatment, and net-refund behavior per scenario
-- Includes a Sensitivity tab with:
-  - downside/upside scenario matrix
-  - break-even annual return vs mortgage-only baseline
-  - return-vs-HELOC-rate heatmap of after-tax net outcomes
-- Shows headline metrics, yearly table, and chart
+- Canadian ETF / stock dropdown: VFV, BMO, XEQT, RY, TD, ZNQ, CM, XDIV, VDY, XEI, XIU, XIC, VCN, ZCN, VEQT, ZSP and ZEB. BMO, RY, TD and CM are bank stocks.
+- Fetch latest available CAD close, trailing 12-month cash distribution yield and 1/3/5/10-year annualized **price** returns from Yahoo Finance. Distributions are added separately to avoid counting them twice. Dates, available history and manual overrides are visible. Shorter history is explicitly identified.
+- Age, horizon, existing portfolio/ACB, initial HELOC withdrawal, available room, loan rates and additional margin borrowing.
+- Default Ontario highest combined marginal bracket (53.5296%, eligible dividends 39.344048%); Ontario 2026 gross-income estimate or custom rates for other provinces.
+- Adjustable eligible Canadian distribution share per holding; remaining distributions use ordinary-income treatment. Mixed ETF shares are illustrative, editable assumptions, not fetched tax breakdowns.
+- Six configurable comparisons, initially ordered from most leverage to least: margin + compound, capitalize + compound, dividend mortgage accelerator, dividends service interest, reduce investment debt, mortgage only.
+- Each comparison can select the shared allocation mix or an individual ticker. Choosing a new ticker adds an editable holding with zero allocation, so it does not change the shared mix.
+- Annual tax refunds/payables with timing lag; distribution tax is counted once. Monthly tax withholding and annual settlement are alternative timing choices.
+- Mortgage payoff month/age, ending age, separate HELOC and margin balances, liquidation tax, external cash required, annual distributions/taxes/interest benefits and comparison charts.
+- HELOC room expands with mortgage principal paid, bounded by modeled 65% HELOC and 80% combined loan-to-value limits. Unavailable investment advances are skipped and flagged; interest funding gaps use external cash.
+- Same monthly mortgage budget across comparisons: freed payments after payoff accumulate as cash.
+- Sensitivity scenarios, break-even returns and return/rate heatmap.
 
-## Tax-aware ticker guidance (Canada)
+## Run locally with live data
 
-- For non-registered Smith Manoeuvre setups, many users try to minimize return of capital (ROC) and favor eligible Canadian dividends to reduce tax-reporting complexity.
-- Common Canadian starting points:
-  - Core Canadian equity: `XIU`, `XIC`, `VCN`, `ZCN`
-  - Canadian dividend tilt: `XEI`, `VDY`, `CDZ`
-  - One-ticket equity: `VEQT`, `XEQT` (distributions can include mixed tax types)
-- Verify each ETF's latest annual tax breakdown from the issuer before buying.
+No third-party Python dependencies are required:
 
-## Run locally
-
-Because this is a static app, you can run it with any local file server.
-
-### Option 1: open directly
-
-Open `index.html` in a browser.
-
-### Option 2: serve over HTTP (recommended)
-
-```bash
-python3 -m http.server 8000
+```sh
+python3 server.py --port 8000
 ```
 
-Then visit [http://localhost:8000](http://localhost:8000).
+Open [http://localhost:8000](http://localhost:8000). The server binds to localhost and serves the website plus `/api/market?symbol=VFV`.
 
-## Publish on GitHub Pages (jerryfong46)
+The project already has Vercel project metadata. `api/market.py` is a Python serverless endpoint for Vercel. Vercel can serve the root HTML/CSS/JS and the API together. There is no deployment included in this change.
 
-1. Create a new repository on GitHub (for example `smith-manoeuvre-sim`).
-2. Upload these files to the repository root:
-   - `index.html`
-   - `styles.css`
-   - `app.js`
-   - `README.md`
-3. In GitHub, go to **Settings > Pages**.
-4. Under **Build and deployment**, choose:
-   - **Source**: Deploy from a branch
-   - **Branch**: `main` and `/ (root)`
-5. Save and wait for deployment.
-6. Your app URL will be:
-   - `https://jerryfong46.github.io/smith-manoeuvre-sim/`
+Opening `index.html` directly, using a plain static file server, or publishing only to GitHub Pages supports manual forecasts; **live fetching requires the market API**. Failed requests preserve editable assumptions and show an error. The provider can rate-limit or change its endpoint. Responses are cached for one hour. Only an allowlist of Canadian tickers can be requested; no account credentials or portfolio inputs are sent to the provider.
 
-## Important assumptions
+## Financial assumptions
 
-- Fixed mortgage rate and payment across the full horizon
-- Constant return assumptions based on your holdings inputs
-- HELOC interest deduction/refund is estimated using a single marginal tax rate
-- After-tax economic closeout net estimates liquidation tax as:
-  - unrealized gain x capital-gains inclusion rate x marginal tax rate
-- After-tax economic net also:
-  - adds uninvested cash and pending tax refund receivables
-  - subtracts external cash contributions used to service HELOC interest/principal
-- Home value is held constant (no appreciation/depreciation)
-- This is educational planning software, not financial advice
+- Mortgage uses Canadian semiannual compounding. Price returns use effective monthly compounding consistent with annual CAGR. Cash distributions are spread monthly; actual payment schedules differ.
+- A 30% margin setting adds $30 for each $100 of initial/new HELOC investment (also on existing portfolio at startup). It does not recursively borrow against gains, dividends or the margin-funded purchase. Margin interest is paid monthly from cashflow. Maintenance debt/portfolio breaches are flagged; forced sales and margin-call liquidation taxes are not simulated, so breached paths are not executable forecasts.
+- Self-capitalization assumes a separate, traceable advance actually pays deductible interest. Simply leaving compound interest unpaid does not support the same tax assumptions.
+- Ontario income mode applies 2026 federal/provincial brackets, basic personal amounts, eligible dividend gross-up/credits and surtax. Gross income is treated as taxable income before investment activity. CPP/EI, health premium, employment/other credits, tax reduction, AMT and benefit clawbacks are excluded. Income, brackets and tax law remain constant over the horizon. Other provinces use manual rates.
+- ETF distribution tax breakdowns are not inferred from dividend yield. ROC, distributed capital gains, foreign tax credits and non-cash distributions/ACB adjustments are excluded; enter updated assumptions after checking issuer tax information.
+- Annual settlement nets deductible-interest savings against distribution taxes. Negative settlements remain liabilities until paid, including at closeout; monthly withholding is reconciled against the annual calculation.
+- Liquidation taxes only positive unrealized gains using ACB and the editable inclusion rate (default 50%). Income mode applies progressive tax to terminal gains. No tax credit is invented for losses.
+- After-tax economic closeout = home equity + portfolio after liquidation tax + cash + pending tax settlements − HELOC − margin debt − cumulative external loan-servicing contributions. The separate portfolio-less-loans figure excludes home equity/cash/external contributions.
+- Mortgage payoff clears the mortgage alone: investment loans can remain. No mortgage penalties, lender-specific prepayment limits, trading costs, inflation, home-price changes or return volatility are modeled.
+
+Sources: [CRA 2026 tax brackets](https://www.canada.ca/en/revenue-agency/services/tax/individuals/tax-rates-brackets/current-year.html), [Ontario personal amounts and surtax](https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4032-payroll-deductions-tables/t4032on-jan/t4032on-january-general-information.html), [interest deductibility](https://www.canada.ca/en/revenue-agency/services/tax/technical-information/income-tax/income-tax-folios-index/series-3-property-investments-savings-plans/series-3-property-investments-savings-plan-folio-6-interest/income-tax-folio-s3-f6-c1-interest-deductibility.html), [ETF tax distribution types](https://www.blackrock.com/ca/investors/en/resources/faqs/distributions-and-tax).
+
+## Checks
+
+```sh
+node tests/model.test.js
+node tests/ui-smoke.test.js
+python3 -m unittest discover -s tests -p 'test_*.py'
+```
+
+Financial tests cover tax settlement, dividends, debt, CAGR/ACB, capacity, payoff, matched mortgage budgets and margin warnings. The interface smoke test uses an offline DOM fixture and mocked market responses; it is not browser/layout verification. Market tests exercise price/distribution calculations without network access.
+
+Educational planning estimates, not financial advice.
