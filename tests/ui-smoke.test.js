@@ -42,6 +42,7 @@ for(const file of ['model.js','market.js','app.js'])vm.runInContext(fs.readFileS
   assert.equal(document.getElementById('holdingsRows').children[0].querySelector('.h-symbol').value,'VFV');
   assert.equal(document.getElementById('mortgageRate').value,'4');
   assert.equal(document.getElementById('helocRate').value,'4.45');
+  assert.equal(document.getElementById('initialHelocRoom').value,'100000');
   assert.equal(document.getElementById('marginRate').value,'3.95');
   assert.equal(document.getElementById('horizonYears').value,'25');
   assert.equal(document.getElementById('horizonYearsValue').textContent,'25 years');
