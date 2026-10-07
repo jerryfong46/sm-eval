@@ -921,6 +921,7 @@ addHoldingEl.addEventListener("click", () => {
 
 taxBracketEl.addEventListener("change", () => {
   updateTaxRateFromBracket();
+  if (taxBracketEl.value === "custom") taxRateEl.closest("details").open = true;
 });
 
 helocStrategyEl.addEventListener("change", () => {
@@ -981,6 +982,11 @@ form.addEventListener("submit", (event) => {
   event.preventDefault();
   runAndRender();
 });
+
+form.addEventListener("invalid", (event) => {
+  const advanced = event.target.closest("details");
+  if (advanced) advanced.open = true;
+}, true);
 
 loadDefaultHoldings();
 loadDefaultScenarios();

@@ -523,6 +523,20 @@ th, td { padding: 12px 14px; }
 .comparison-explainer { padding: 14px 18px; border-left: 4px solid var(--accent); background: #f8edf0; color: #3c3c3e; line-height: 1.55; }
 .comparison-assumption { margin: 0 0 18px; padding: 14px 18px; border: 1px solid #dfc4cd; border-radius: 10px; color: #6b1733; background: #fff9fa; line-height: 1.55; font-weight: 600; }
 .comparison-delta { font-weight: 700; }
+.advanced-panel { margin-top: 16px; border: 1px solid var(--border); border-radius: 10px; background: #faf9f9; overflow: hidden; }
+.advanced-panel > summary { cursor: pointer; padding: 12px 16px; color: var(--accent-deep); font-weight: 700; }
+.advanced-panel > summary:hover { background: #f8edf0; }
+.advanced-panel[open] > summary { border-bottom: 1px solid var(--border); }
+.advanced-panel > .section-grid, .advanced-panel > .hint { margin: 0; padding: 16px; }
+.advanced-panel > .table-wrap { margin: 16px 16px 0; }
+.advanced-panel > .comparison-explainer { margin: 16px; }
+.scenario-editor > #addScenario { margin: 16px; }
+.preset-summary { margin: 16px 0 0; }
+.detail-notes { margin-top: 0; }
+.holding-table td:nth-child(5) { display: none; }
+.holding-options[open] ~ .table-wrap .holding-table td:nth-child(5) { display: block; }
+.scenario-editor { margin: 0 0 20px; }
+.result-help { margin: 0 0 18px; }
 .metric { padding: 18px; }
 .metric p { overflow-wrap: anywhere; }
 .summary { line-height: 1.6; }

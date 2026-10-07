@@ -24,7 +24,7 @@
 
       <section class="card" id="inputs">
         <h2>Your assumptions</h2>
-        <p class="summary">Start with your mortgage, then set your borrowing and cashflow preferences.</p>
+        <p class="summary">Enter your mortgage and home details, then choose an investment. Common tax and borrowing choices are preselected.</p>
         <form id="sim-form" class="form-sections">
           <fieldset class="input-section">
             <legend>You, Mortgage &amp; Home</legend>
@@ -43,10 +43,6 @@
                 <input type="number" id="amortYears" min="1" step="1" value="25" required />
               </label>
               <label>
-                Extra monthly mortgage payment ($)
-                <input type="number" id="extraPayment" min="0" step="50" value="0" required />
-              </label>
-              <label>
                 Simulation horizon (years)
                 <input type="number" id="horizonYears" max="60" min="1" step="1" value="25" required />
               </label>
@@ -55,12 +51,26 @@
                 <input type="number" id="homeValue" min="0" step="1000" value="1500000" required />
               </label>
             </div>
+            <details class="advanced-panel">
+              <summary>Extra mortgage payments</summary>
+              <div class="section-grid">
+                <label>Extra monthly mortgage payment ($)<input type="number" id="extraPayment" min="0" step="50" value="0" required /></label>
+              </div>
+            </details>
           </fieldset>
 
           <fieldset class="input-section">
             <legend>Portfolio &amp; HELOC</legend>
-            <p class="hint">Existing portfolio is separate from new borrowing. Available HELOC room grows as the mortgage is paid down, subject to modeled 65% HELOC and 80% combined loan-to-value limits.</p>
+            <p class="hint">Mortgage principal paid down can be drawn from the HELOC and invested, within the modeled lending limits.</p>
             <div class="section-grid">
+              <label>Available HELOC room today ($)<input type="number" id="initialHelocRoom" min="0" step="1000" value="60000" required /></label>
+              <label>HELOC annual rate (%)<input type="number" id="helocRate" min="0" step="0.01" value="4.45" required /></label>
+              <label>Portfolio loan annual rate (%)<input type="number" id="marginRate" min="0" max="100" step="0.01" value="3.95" required /></label>
+            </div>
+            <details class="advanced-panel">
+              <summary>More borrowing and portfolio options</summary>
+              <p class="hint">Existing investments are separate from new HELOC borrowing. HELOC draws are limited by modeled 65% HELOC and 80% combined loan-to-value caps.</p>
+              <div class="section-grid">
               <label>
                 Existing portfolio market value ($)
                 <input type="number" id="startingPortfolio" min="0" step="100" value="0" required />
@@ -74,14 +84,8 @@
                 <input type="number" id="fallbackPortfolioReturn" min="-99" max="100" step="0.01" value="5" required />
               </label>
               <label>Initial HELOC withdrawal to invest now ($)<input type="number" id="initialWithdrawal" min="0" step="1000" value="0" required /></label>
-              <label>Available HELOC room today ($)<input type="number" id="initialHelocRoom" min="0" step="1000" value="60000" required /></label>
-              <label>Portfolio loan annual rate (%)<input type="number" id="marginRate" min="0" max="100" step="0.01" value="3.95" required /></label>
               <label>Custom strategy: extra margin borrowing (% of new investment)<input type="number" id="marginRatio" min="0" max="100" step="1" value="0" required /></label>
               <label>Margin maintenance debt / portfolio limit (%)<input type="number" id="marginMaintenanceLtv" min="1" max="99" value="50" required /></label>
-              <label>
-                HELOC annual rate (%)
-                <input type="number" id="helocRate" min="0" step="0.01" value="4.45" required />
-              </label>
               <label>
                 HELOC payment strategy
                 <select id="helocPaymentStrategy">
@@ -95,13 +99,14 @@
                 <input type="number" id="helocPrincipalPayment" min="0" step="50" value="0" required />
               </label>
             </div>
+            </details>
           </fieldset>
 
           <fieldset class="input-section">
-            <legend>Tax &amp; Cashflow Strategy</legend>
+            <legend>Tax &amp; Cashflow</legend>
             <div class="section-grid">
               <label>
-                Tax bracket preset
+                Tax assumption
                 <select id="taxBracket">
                   <option value="highest" selected>Ontario highest combined bracket — 53.53%</option>
                   <option value="income">Estimate from gross income — Ontario 2026</option>
@@ -112,6 +117,11 @@
                 </select>
               </label>
               <label id="grossIncomeWrap">Annual gross income ($)<input type="number" id="grossIncome" min="0" step="1000" value="300000" required /></label>
+            </div>
+            <p class="hint preset-summary">Common choices are preselected. Open the options to change tax timing, dividends, or refunds.</p>
+            <details class="advanced-panel">
+              <summary>Advanced tax and cashflow options</summary>
+              <div class="section-grid">
               <label>
                 Marginal tax rate (%)
                 <input type="number" id="taxRate" min="0" max="100" step="any" value="53.53" required />
@@ -164,19 +174,26 @@
                 </select>
               </label>
             </div>
+            <p class="hint" id="taxHelp">Ontario 2026 rates. Income mode models progressive brackets, basic personal amounts, eligible dividend credits and surtax. Gross income is treated as taxable income before investment activity; excludes CPP/EI, health premium, AMT and other credits. Tax rates and income are held constant over the forecast.</p>
+            </details>
           </fieldset>
 
-          <p class="hint" id="taxHelp">Ontario 2026 rates. Income mode models progressive brackets, basic personal amounts, eligible dividend credits and surtax. Gross income is treated as taxable income before investment activity; excludes CPP/EI, health premium, AMT and other credits. Tax rates and income are held constant over the forecast.</p>
-          <p class="hint">Self-capitalization assumes a separate, traceable advance actually pays each interest bill, rather than leaving interest unpaid. In the portfolio-loan strategy, new advances pay only HELOC interest, up to the modeled portfolio-loan limit; portfolio-loan interest and any shortfall use cash. Additional margin borrowing is non-recursive: 30% adds $30 per $100 of initial/new HELOC investment, without re-leveraging gains or dividends. Maintenance breaches are flagged; forced sales are not simulated.</p>
+          <details class="advanced-panel detail-notes">
+            <summary>How the borrowing assumptions work</summary>
+            <p class="hint">Self-capitalization assumes a separate, traceable advance actually pays each interest bill, rather than leaving interest unpaid. In the portfolio-loan strategy, new advances pay only HELOC interest, up to the modeled portfolio-loan limit; portfolio-loan interest and any shortfall use cash. Additional margin borrowing is non-recursive: 30% adds $30 per $100 of initial/new HELOC investment, without re-leveraging gains or dividends. Maintenance breaches are flagged; forced sales are not simulated.</p>
+          </details>
           <fieldset class="holdings-fieldset" id="holdings">
             <legend>Borrowed funds allocation (stocks / ETFs)</legend>
-            <p class="hint">Select a Canadian-listed ETF or bank stock to fetch its latest close, trailing 12-month distribution yield and historical annualized price returns. History excludes dividends, which the forecast adds separately. Historical performance is an assumption, not a prediction. BMO, RY, TD and CM are stocks.</p>
+            <p class="hint">Choose an ETF or stock. Fetched price returns and yields remain editable forecast assumptions.</p>
             <div class="market-controls">
               <label>Historical period for forecast<select id="historyPeriod"><option value="1">1 year</option><option value="3">3 years</option><option value="5" selected>5 years</option><option value="10">10 years</option></select></label>
               <button type="button" id="refreshMarket" class="small-btn">Refresh market data</button>
             </div>
-            <p class="hint">Eligible distribution share is an editable tax assumption: 100% for bank stocks, 0% for foreign equity funds, and an illustrative 25% for XEQT/VEQT. Verify the issuer's annual tax breakdown. Remaining distributions are modeled as ordinary income; ROC, distributed gains, foreign tax credits and phantom distributions are not modeled.</p>
             <p id="marketStatus" class="hint" role="status">Editable illustrative assumptions until market data is fetched.</p>
+            <details class="advanced-panel holding-options">
+              <summary>Advanced investment tax assumptions</summary>
+              <p class="hint">History uses price changes without dividends; distributions are added separately. Eligible distribution share defaults to 100% for bank stocks, 0% for foreign equity funds, and an illustrative 25% for XEQT/VEQT. Check the issuer's annual tax breakdown. ROC, distributed gains, foreign tax credits and phantom distributions are not modeled.</p>
+            </details>
             <div class="table-wrap">
               <table class="holding-table">
                 <thead>
@@ -233,11 +250,15 @@
         </div>
 
         <div id="compareTabPanel" class="tab-panel active">
-          <p class="summary">
-            Compare different borrowing and repayment methods. Customize each strategy and investment separately. Shared mix uses the holdings allocations above; single-ticker comparisons use that ticker’s row assumptions or fetched history. Loan rates are editable planning assumptions.
-          </p>
-          <p class="comparison-explainer">Final closeout is home value minus mortgage, plus portfolio and cash, minus estimated sale tax, HELOC and portfolio-loan balances, and outside cash spent on loan servicing, with pending tax settlements included. “Vs mortgage + investing cash” compares each strategy with paying the mortgage normally while investing that strategy’s outside cash outlays in the same holding. Both paths use the same return assumptions, but the Smith path carries more debt and market exposure. Forecast dollars are nominal; the fetched historical return is held constant for the full horizon.</p>
+          <p class="summary">Compare seven ready-to-use strategies under the same mortgage and investment assumptions.</p>
+          <details class="advanced-panel result-help">
+            <summary>How this comparison is calculated</summary>
+            <p class="comparison-explainer">Final closeout is home value minus mortgage, plus portfolio and cash, minus estimated sale tax, HELOC and portfolio-loan balances, and outside cash spent on loan servicing, with pending tax settlements included. “Vs mortgage + investing cash” compares each strategy with paying the mortgage normally while investing that strategy’s outside cash outlays in the same holding. Both paths use the same return assumptions, but the Smith path carries more debt and market exposure. Forecast dollars are nominal; the fetched historical return is held constant for the full horizon.</p>
+          </details>
           <p id="forecastAssumptionAlert" class="comparison-assumption" role="note"></p>
+          <details class="advanced-panel scenario-editor">
+            <summary>Customize comparison strategies</summary>
+            <p class="hint">Change each strategy’s investment, borrowing, and cashflow choices here. Shared mix uses the holdings above; a single-ticker choice uses that ticker’s assumptions.</p>
           <div class="table-wrap">
             <table class="scenario-table">
               <thead>
@@ -259,6 +280,7 @@
             </table>
           </div>
           <button type="button" id="addScenario" class="small-btn">Add Scenario</button>
+          </details>
           <div class="table-wrap" tabindex="0" role="region" aria-label="Forecast data, scroll horizontally for more columns">
             <table class="compare-summary-table">
               <thead>
