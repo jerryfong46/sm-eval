@@ -5,6 +5,7 @@ const horizonYearsEl = document.getElementById("horizonYears");
 const horizonYearsValueEl = document.getElementById("horizonYearsValue");
 const amortYearsEl = document.getElementById("amortYears");
 const metricsEl = document.getElementById("metrics");
+const heroResultEl = document.getElementById("heroResult");
 const yearlyRowsEl = document.getElementById("yearlyRows");
 const chartCanvas = document.getElementById("chart");
 const compareSummaryRowsEl = document.getElementById("compareSummaryRows");
@@ -671,6 +672,12 @@ function drawComparisonChart(results) {
 }
 
 function renderMetrics(summary) {
+  const heroCls = summary.finalAfterTaxNetPosition < 0 ? "negative" : "positive";
+  heroResultEl.innerHTML = `
+    <p class="hero-result-value ${heroCls}">${currency.format(summary.finalAfterTaxNetPosition)}</p>
+    <p class="hero-result-label">Final after-tax economic closeout net</p>
+  `;
+
   const metricItems = [
     ["Final Mortgage", summary.finalMortgageBalance],
     ["Final HELOC", summary.finalHelocBalance],
@@ -684,7 +691,6 @@ function renderMetrics(summary) {
     ["Final Smith-Only Value (After-tax)", summary.finalSmithValueAfterTax],
     ["Final Net Position (Pre-tax)", summary.finalPreTaxNetPosition],
     ["Est. Liquidation Tax", summary.finalEstimatedLiquidationTax],
-    ["Final After-tax Economic Closeout Net", summary.finalAfterTaxNetPosition],
     ["Ending Cash (Uninvested)", summary.finalCashBalance],
     ["Pending Tax Settlement (+ refund / − payable)", summary.pendingTaxRefundReceivable],
     ["External Cash Required", summary.cumulativeExternalContributions],
