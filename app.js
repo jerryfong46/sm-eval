@@ -881,13 +881,6 @@ function renderStrategySummary(inputs, summary) {
 function runAndRender() {
   updateTaxRateFromBracket();
   const inputs = parseInputs();
-  document.getElementById("forecastAssumptionAlert").textContent =
-    `This forecast repeats ${percentText(inputs.weightedPriceReturn)} annual price growth and ` +
-    `${percentText(inputs.weightedDividendYield)} distribution yield for ${inputs.horizonYears} years, ` +
-    `with no market declines or inflation adjustment. ` +
-    (inputs.taxMode === "rates"
-      ? `It applies the entered ${percentText(inputs.taxRate)} marginal rate to every deductible dollar; use the income tax preset if that rate would not apply throughout.`
-      : "It uses the entered income to estimate progressive Ontario tax each year.");
   const custom = runCustomSimulation(inputs);
   const comparison = runComparison(inputs);
   const sensitivity = runSensitivity(inputs);
