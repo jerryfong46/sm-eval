@@ -1,4 +1,6 @@
 const form = document.getElementById("sim-form");
+const resultsEl = document.getElementById("results");
+const resultsHeadingEl = document.getElementById("resultsHeading");
 const metricsEl = document.getElementById("metrics");
 const yearlyRowsEl = document.getElementById("yearlyRows");
 const chartCanvas = document.getElementById("chart");
@@ -974,6 +976,8 @@ addScenarioEl.addEventListener("click", () => {
 form.addEventListener("submit", (event) => {
   event.preventDefault();
   runAndRender();
+  resultsHeadingEl.focus({preventScroll: true});
+  resultsEl.scrollIntoView({behavior: "smooth", block: "start"});
 });
 
 form.addEventListener("invalid", (event) => {

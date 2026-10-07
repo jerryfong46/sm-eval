@@ -21,6 +21,8 @@ class Node {
   append(...ns){ns.filter(n=>n instanceof Node).forEach(n=>this.appendChild(n));}
   replaceChildren(...ns){this.children=[];this.append(...ns);}
   setAttribute(k,v){this.attrs[k]=v;}
+  focus(){this.focused=true;}
+  scrollIntoView(){this.scrolledIntoView=true;}
   addEventListener(e,cb){(this.events[e] ||= []).push(cb);} closest(s){return this.matches(s)?this:this.parent?.closest(s);}
   getContext(){return new Proxy({}, {get:()=>()=>{}});}
   fire(e,target=this){for(const cb of this.events[e]||[]) cb({target,preventDefault(){}});}
@@ -62,6 +64,8 @@ for(const file of ['model.js','market.js','app.js'])vm.runInContext(fs.readFileS
   assert.ok(document.getElementById('compareSummaryRows').innerHTML.includes('VFV (6.0% price / 4.0% yield)'));
   const initial=document.getElementById('initialWithdrawal');initial.value='50000';document.getElementById('sim-form').fire('submit');
   assert.ok(!document.getElementById('metrics').innerHTML.includes('NaN'));
+  assert.equal(document.getElementById('resultsHeading').focused,true);
+  assert.equal(document.getElementById('results').scrolledIntoView,true);
   sandbox.fetch=async()=>{throw new Error('offline');};
   vm.runInContext('marketCache.clear()',sandbox);
   document.getElementById('refreshMarket').fire('click');await new Promise(r=>setImmediate(r));
