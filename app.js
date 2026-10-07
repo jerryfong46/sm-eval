@@ -33,7 +33,7 @@ const currency = new Intl.NumberFormat("en-CA", {
 });
 
 const SCENARIO_COLOR_PALETTE = [
-  "#4f6061",
+  "#606366",
   "#0f8a73",
   "#2e4ccf",
   "#d96a2b",
@@ -540,7 +540,7 @@ function drawCustomChart(yearly) {
 
   const y = (v) => pad.top + ((maxY - v) / (maxY - minY)) * (h - pad.top - pad.bottom);
 
-  ctx.strokeStyle = "#d3dfe0";
+  ctx.strokeStyle = "#d9dada";
   ctx.lineWidth = 1;
   for (let i = 0; i <= 4; i += 1) {
     const gy = pad.top + (i / 4) * (h - pad.top - pad.bottom);
@@ -550,7 +550,7 @@ function drawCustomChart(yearly) {
     ctx.stroke();
 
     const value = maxY - (i / 4) * (maxY - minY);
-    ctx.fillStyle = "#486061";
+    ctx.fillStyle = "#606366";
     ctx.font = "12px sans-serif";
     ctx.fillText(currency.format(value), 4, gy + 4);
   }
@@ -580,7 +580,7 @@ function drawCustomChart(yearly) {
   lines.forEach((line) => {
     ctx.fillStyle = line.color;
     ctx.fillRect(legendX, legendY, 12, 12);
-    ctx.fillStyle = "#132021";
+    ctx.fillStyle = "#282c2f";
     ctx.font = "12px sans-serif";
     ctx.fillText(line.label, legendX + 18, legendY + 11);
     legendY += 18;
@@ -614,7 +614,7 @@ function drawComparisonChart(results) {
 
   const y = (v) => pad.top + ((maxY - v) / (maxY - minY)) * (h - pad.top - pad.bottom);
 
-  ctx.strokeStyle = "#d3dfe0";
+  ctx.strokeStyle = "#d9dada";
   ctx.lineWidth = 1;
   for (let i = 0; i <= 4; i += 1) {
     const gy = pad.top + (i / 4) * (h - pad.top - pad.bottom);
@@ -624,7 +624,7 @@ function drawComparisonChart(results) {
     ctx.stroke();
 
     const value = maxY - (i / 4) * (maxY - minY);
-    ctx.fillStyle = "#486061";
+    ctx.fillStyle = "#606366";
     ctx.font = "12px sans-serif";
     ctx.fillText(currency.format(value), 4, gy + 4);
   }
@@ -647,7 +647,7 @@ function drawComparisonChart(results) {
   results.forEach((result) => {
     ctx.fillStyle = result.scenario.color;
     ctx.fillRect(legendX, legendY, 12, 12);
-    ctx.fillStyle = "#132021";
+    ctx.fillStyle = "#282c2f";
     ctx.font = "12px sans-serif";
     ctx.fillText(result.scenario.name, legendX + 18, legendY + 11, w - legendX - 35);
     legendY += 18;
