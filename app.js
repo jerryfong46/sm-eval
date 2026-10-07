@@ -707,8 +707,8 @@ function renderMetrics(summary) {
 function renderYearlyRows(yearly) {
   yearlyRowsEl.innerHTML = yearly
     .map((d) => {
-      const netClass = d.netAfterTax < 0 ? "negative" : "";
-      const smithClass = d.smithValueAfterTax < 0 ? "negative" : "";
+      const netClass = d.netAfterTax < 0 ? "negative" : "positive";
+      const smithClass = d.smithValueAfterTax < 0 ? "negative" : "positive";
       return `<tr>
         <td>${d.year} / ${d.age.toFixed(1)}</td>
         <td>${currency.format(d.mortgageBalance)}</td>
@@ -732,13 +732,13 @@ function renderComparisonSummary(results) {
 
   compareSummaryRowsEl.innerHTML = results
     .map((result) => {
-      const netClass = result.summary.finalAfterTaxNetPosition < 0 ? "negative" : "";
+      const netClass = result.summary.finalAfterTaxNetPosition < 0 ? "negative" : "positive";
       return `<tr>
         <td class="comparison-key ${netClass}">${currency.format(result.summary.finalAfterTaxNetPosition)}</td>
         <td class="comparison-key">${payoffText(result.summary)}<small class="payoff-alternative">Min Yrs Pay Off: ${payoffText({mortgagePayoffMonths: result.summary.debtFreeExitMonths})}</small></td>
         <td>${escapeHtml(result.scenario.name)}${result.summary.warnings.map(w => `<small class="forecast-warning">${escapeHtml(w)}</small>`).join("")}</td>
         <td>${currency.format(result.summary.matchedMortgageNet)}</td>
-        <td class="comparison-delta ${result.summary.advantageVsMatchedMortgage < 0 ? 'negative' : ''}">${formatSignedCurrency(result.summary.advantageVsMatchedMortgage)}</td>
+        <td class="comparison-delta ${result.summary.advantageVsMatchedMortgage < 0 ? 'negative' : 'positive'}">${formatSignedCurrency(result.summary.advantageVsMatchedMortgage)}</td>
         <td>${currency.format(result.summary.finalMortgageBalance)}</td>
         <td>${currency.format(result.summary.finalHelocBalance)}</td><td>${currency.format(result.summary.finalMarginBalance)}</td>
         <td>${currency.format(result.summary.finalPortfolio)}</td>
@@ -763,10 +763,21 @@ function renderComparisonYearlyRows(results) {
       .join("")}</tr>`;
 
   const years = results[0].yearly;
+  const debtFreeRowIdx = results.map((result) => {
+    const months = result.summary.debtFreeExitMonths;
+    return months === null ? -1 : result.yearly.findIndex((y) => y.month >= months);
+  });
+
   compareYearlyRowsEl.innerHTML = years
     .map((yearRow, idx) => {
       const valueCells = results
-        .map((result) => `<td>${currency.format(result.yearly[idx].netAfterTax)}</td>`)
+        .map((result, resultIdx) => {
+          const value = currency.format(result.yearly[idx].netAfterTax);
+          if (idx === debtFreeRowIdx[resultIdx]) {
+            return `<td><strong title="Investments could cover the mortgage, HELOC and portfolio-loan balances this year, after estimated liquidation tax">${value}</strong></td>`;
+          }
+          return `<td>${value}</td>`;
+        })
         .join("");
       return `<tr><td>${yearRow.year}</td>${valueCells}</tr>`;
     })
@@ -781,7 +792,7 @@ function formatSignedCurrency(value) {
 function renderSensitivityMatrix(matrix) {
   sensitivityMatrixRowsEl.innerHTML = matrix
     .map((row) => {
-      const deltaClass = row.deltaVsBaseline < 0 ? "negative" : "";
+      const deltaClass = row.deltaVsBaseline < 0 ? "negative" : "positive";
       return `<tr>
         <td>${escapeHtml(row.scenario.name)}</td>
         <td>${currency.format(row.summary.finalAfterTaxNetPosition)}</td>
@@ -826,7 +837,7 @@ function renderSensitivityHeatmap(heatmap) {
           const intensity = Math.min(1, Math.abs(cell.delta) / maxAbs);
           const alpha = 0.12 + 0.35 * intensity;
           const background =
-            cell.delta >= 0 ? `rgba(20, 120, 80, ${alpha})` : `rgba(180, 60, 60, ${alpha})`;
+            cell.delta >= 0 ? `rgba(31, 111, 74, ${alpha})` : `rgba(157, 42, 42, ${alpha})`;
           const textColor = cell.delta >= 0 ? "#0a3f2a" : "#5c1111";
           return `<td class="heat-cell" style="background:${background};color:${textColor};">${formatSignedCurrency(
             cell.delta
