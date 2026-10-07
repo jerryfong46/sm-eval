@@ -43,10 +43,6 @@
                 <input type="number" id="amortYears" min="1" step="1" value="25" required />
               </label>
               <label>
-                Simulation horizon (years)
-                <input type="number" id="horizonYears" max="60" min="1" step="1" value="25" required />
-              </label>
-              <label>
                 Home value ($)
                 <input type="number" id="homeValue" min="0" step="1000" value="1500000" required />
               </label>
@@ -218,6 +214,12 @@
       <section class="card" id="results" aria-live="polite">
         <h2 id="resultsHeading" tabindex="-1">Your forecast</h2>
         <p class="hint">Explore your custom strategy, compare alternatives, or test changing rates. Scroll data tables sideways to see all columns.</p>
+        <div class="forecast-period">
+          <label for="horizonYears">Forecast closeout at <output id="horizonYearsValue" for="horizonYears">25 years</output></label>
+          <input type="range" id="horizonYears" min="1" max="60" step="1" value="25" />
+          <div class="forecast-period-scale"><span>1 year</span><span>60 years</span></div>
+          <p class="hint">Defaults to your mortgage amortization. Move the slider to compare selling the investments and settling loans at another year.</p>
+        </div>
         <div class="tab-nav">
           <button type="button" class="tab-btn" data-tab-target="customTabPanel">Custom Strategy</button>
           <button type="button" class="tab-btn active" data-tab-target="compareTabPanel">Strategy Compare</button>
@@ -253,7 +255,7 @@
           <p class="summary">Compare seven ready-to-use strategies under the same mortgage and investment assumptions.</p>
           <details class="advanced-panel result-help">
             <summary>How this comparison is calculated</summary>
-            <p class="comparison-explainer">Final closeout is home value minus mortgage, plus portfolio and cash, minus estimated sale tax, HELOC and portfolio-loan balances, and outside cash spent on loan servicing, with pending tax settlements included. “Vs mortgage + investing cash” compares each strategy with paying the mortgage normally while investing that strategy’s outside cash outlays in the same holding. Both paths use the same return assumptions, but the Smith path carries more debt and market exposure. Forecast dollars are nominal; the fetched historical return is held constant for the full horizon.</p>
+            <p class="comparison-explainer">“Mortgage Paid Off” shows when the ongoing strategy reduces the mortgage to zero. The separate debt-free exit date is the first forecast month when selling the entire portfolio, after estimated capital-gains tax, plus available cash could repay the mortgage, HELOC and portfolio loan. Pending tax payable counts; unreceived refunds do not. It is a possible exit at that date, not a simulated change to the strategy. Final closeout is home value minus mortgage, plus portfolio and cash, minus estimated sale tax, HELOC and portfolio-loan balances, and outside cash spent on loan servicing, with pending tax settlements included. “Vs mortgage + investing cash” compares each strategy with paying the mortgage normally while investing that strategy’s outside cash outlays in the same holding. Both paths use the same return assumptions, but the Smith path carries more debt and market exposure. Forecast dollars are nominal; the fetched historical return is held constant for the full horizon.</p>
           </details>
           <details class="advanced-panel scenario-editor">
             <summary>Customize comparison strategies</summary>
@@ -285,7 +287,7 @@
               <thead>
                 <tr>
                   <th>Final After-tax Economic Closeout Net</th>
-                  <th>Mortgage Paid Off</th>
+                  <th>Mortgage Paid Off<br /><small>With ongoing strategy</small></th>
                   <th>Scenario</th>
                   <th>Mortgage + investing cash net</th>
                   <th>Vs mortgage + investing cash</th>
@@ -350,7 +352,7 @@
 
       <section class="card">
         <h2>Forecast assumptions &amp; sources</h2>
-        <p class="hint">After-tax closeout sells the portfolio, pays capital gains tax, repays HELOC and margin debt, includes cash and pending tax settlements, and subtracts external loan-servicing cash. Mortgage payoff means the mortgage alone is cleared; investment loans may remain. Freed scheduled mortgage payments accumulate as cash after payoff so comparisons keep the same monthly mortgage budget. Results assume fixed rates and returns, monthly distributions and immediate readvancing. Mortgage penalties, prepayment restrictions and trading costs are excluded.</p>
+        <p class="hint">After-tax closeout sells the portfolio, pays capital gains tax, repays HELOC and margin debt, includes cash and pending tax settlements, and subtracts external loan-servicing cash. Mortgage payoff means the mortgage alone is cleared; investment loans may remain. The separate debt-free exit date asks when selling investments and using available cash could clear all three loans after estimated sale tax; the ongoing forecast does not execute that sale. Freed scheduled mortgage payments accumulate as cash after payoff so comparisons keep the same monthly mortgage budget. Results assume fixed rates and returns, monthly distributions and immediate readvancing. Mortgage penalties, prepayment restrictions and trading costs are excluded.</p>
         <p class="hint">Sources: <a href="https://www.canada.ca/en/revenue-agency/services/tax/individuals/tax-rates-brackets/current-year.html">CRA 2026 tax brackets</a>, <a href="https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4032-payroll-deductions-tables/t4032on-jan/t4032on-january-general-information.html">Ontario surtax and personal amounts</a>, <a href="https://www.canada.ca/en/revenue-agency/services/tax/technical-information/income-tax/income-tax-folios-index/series-3-property-investments-savings-plans/series-3-property-investments-savings-plan-folio-6-interest/income-tax-folio-s3-f6-c1-interest-deductibility.html">CRA interest deductibility</a>, <a href="https://www.blackrock.com/ca/investors/en/resources/faqs/distributions-and-tax">ETF distribution tax types</a>. Market prices and distributions: Yahoo Finance, delayed and subject to provider availability.</p>
       </section>
       <section class="site-disclaimer" aria-label="Important disclaimer">

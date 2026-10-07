@@ -522,6 +522,13 @@ th, td { padding: 12px 14px; }
 .table-wrap > .compare-summary-table tbody tr:nth-child(even) td:nth-child(-n+2) { background: #f3e4e9; }
 .comparison-explainer { padding: 14px 18px; border-left: 4px solid var(--accent); background: #f8edf0; color: #3c3c3e; line-height: 1.55; }
 .comparison-delta { font-weight: 700; }
+.payoff-alternative { display: block; margin-top: 5px; color: var(--muted); font-size: .76rem; font-weight: 400; line-height: 1.35; }
+.forecast-period { margin: 20px 0; padding: 18px 20px; border: 1px solid var(--border); border-radius: 10px; background: #faf9f9; }
+.forecast-period label { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px; font-weight: 700; }
+.forecast-period output { color: var(--accent-deep); }
+.forecast-period input[type="range"] { display: block; width: 100%; margin: 16px 0 4px; accent-color: var(--accent); cursor: pointer; }
+.forecast-period-scale { display: flex; justify-content: space-between; color: var(--muted); font-size: .8rem; }
+.forecast-period .hint { margin: 12px 0 0; }
 .advanced-panel { margin-top: 16px; border: 1px solid var(--border); border-radius: 10px; background: #faf9f9; overflow: hidden; }
 .advanced-panel > summary { cursor: pointer; padding: 12px 16px; color: var(--accent-deep); font-weight: 700; }
 .advanced-panel > summary:hover { background: #f8edf0; }

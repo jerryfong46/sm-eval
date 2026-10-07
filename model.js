@@ -54,6 +54,7 @@
     let portfolio = inputs.startingPortfolio, acb = inputs.startingPortfolioAcb, cash = 0;
     let external = 0, interestTotal = 0, marginInterestTotal = 0, refundsTotal = 0, dividendsTaxTotal = 0;
     let peakInterest = 0, maxHeloc = 0, maxMarginLtv = 0, payoff = mortgage <= .005 ? 0 : null;
+    let debtFreeExit = null;
     let annualInterest = 0, annualEligible = 0, annualOrdinary = 0, annualPaidTax = 0, pending = [];
     let appliedRefundYear = 0, annualGrossDividends = 0, capacityShortfall = 0;
     const timeline = [], warnings = new Set();
@@ -157,6 +158,10 @@
       const liquidationTax = inputs.taxMode === 'income'
         ? Math.max(0, ontarioTax(inputs.grossIncome, annualEligible, annualOrdinary, annualInterest, gain) - ontarioTax(inputs.grossIncome, annualEligible, annualOrdinary, annualInterest))
         : gain * inputs.taxRate;
+      // A separate exit date: sell the portfolio and clear every loan. Unreceived
+      // refunds are unavailable today, while pending tax payable still counts.
+      if (debtFreeExit === null && portfolio - liquidationTax + cash + Math.min(0, pendingRefund)
+          >= mortgage + heloc + margin - .005) debtFreeExit = month;
       const smithPre = portfolio + cash + pendingRefund - heloc - margin - external;
       const smithAfter = smithPre - liquidationTax;
       const ltv = portfolio > 0 ? margin / portfolio : 0;
@@ -184,6 +189,7 @@
       maxHelocBalance: maxHeloc, peakAnnualHelocInterest: peakInterest, cumulativeHelocInterest: interestTotal,
       cumulativeMarginInterest: marginInterestTotal, cumulativeTaxRefund: refundsTotal, cumulativeDividendTax: dividendsTaxTotal,
       mortgagePayoffMonths: payoff, mortgagePayoffAge: payoff === null ? null : inputs.age + payoff / 12,
+      debtFreeExitMonths: debtFreeExit,
       endingAge: inputs.age + inputs.horizonYears, maxMarginLtv, capacityShortfall, warnings: [...warnings]
     }};
   }

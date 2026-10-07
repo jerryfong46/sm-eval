@@ -1,6 +1,9 @@
 const form = document.getElementById("sim-form");
 const resultsEl = document.getElementById("results");
 const resultsHeadingEl = document.getElementById("resultsHeading");
+const horizonYearsEl = document.getElementById("horizonYears");
+const horizonYearsValueEl = document.getElementById("horizonYearsValue");
+const amortYearsEl = document.getElementById("amortYears");
 const metricsEl = document.getElementById("metrics");
 const yearlyRowsEl = document.getElementById("yearlyRows");
 const chartCanvas = document.getElementById("chart");
@@ -732,7 +735,7 @@ function renderComparisonSummary(results) {
       const netClass = result.summary.finalAfterTaxNetPosition < 0 ? "negative" : "";
       return `<tr>
         <td class="comparison-key ${netClass}">${currency.format(result.summary.finalAfterTaxNetPosition)}</td>
-        <td class="comparison-key">${payoffText(result.summary)}</td>
+        <td class="comparison-key">${payoffText(result.summary)}<small class="payoff-alternative">Min Yrs Pay Off: ${payoffText({mortgagePayoffMonths: result.summary.debtFreeExitMonths})}</small></td>
         <td>${escapeHtml(result.scenario.name)}${result.summary.warnings.map(w => `<small class="forecast-warning">${escapeHtml(w)}</small>`).join("")}</td>
         <td>${currency.format(result.summary.matchedMortgageNet)}</td>
         <td class="comparison-delta ${result.summary.advantageVsMatchedMortgage < 0 ? 'negative' : ''}">${formatSignedCurrency(result.summary.advantageVsMatchedMortgage)}</td>
@@ -985,11 +988,28 @@ form.addEventListener("invalid", (event) => {
   if (advanced) advanced.open = true;
 }, true);
 
+let horizonCustomized = false;
+function updateHorizonLabel() {
+  const years = Number(horizonYearsEl.value);
+  horizonYearsValueEl.textContent = `${years} ${years === 1 ? "year" : "years"}`;
+}
+horizonYearsEl.addEventListener("input", () => {
+  horizonCustomized = true;
+  updateHorizonLabel();
+});
+horizonYearsEl.addEventListener("change", () => runAndRender());
+amortYearsEl.addEventListener("change", () => {
+  if (horizonCustomized || !amortYearsEl.validity.valid) return;
+  horizonYearsEl.value = Math.min(60, Math.max(1, Number(amortYearsEl.value)));
+  updateHorizonLabel();
+});
+
 loadDefaultHoldings();
 loadDefaultScenarios();
 updateTaxRateFromBracket();
 updateHelocPrincipalFieldVisibility();
 activateTab("compareTabPanel");
+updateHorizonLabel();
 runAndRender();
 
 initializeMarketControls();

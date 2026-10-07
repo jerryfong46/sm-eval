@@ -5,7 +5,7 @@ class Node {
   constructor(data) {
     this.tagName = data.tag; this.attrs = data.attrs || {}; this.children = (data.children || []).map(d=>new Node(d));
     this.children.forEach(c=>c.parent=this); this.dataset={}; this.style={}; this.events={};
-    this.value=this.attrs.value || ''; this.checked='checked' in this.attrs; this.disabled=false; this.hidden=false;
+    this.value=this.attrs.value || ''; this.checked='checked' in this.attrs; this.disabled=false; this.hidden=false; this.validity={valid:true};
     this.isConnected=true; this.innerHTML=''; this.textContent='';
     this.classList={toggle:()=>{},contains:c=>(this.attrs.class||'').split(' ').includes(c)};
     if(this.tagName==='select') this.value=(this.children.find(c=>'selected' in c.attrs)||this.children[0])?.value || '';
@@ -43,12 +43,23 @@ for(const file of ['model.js','market.js','app.js'])vm.runInContext(fs.readFileS
   assert.equal(document.getElementById('mortgageRate').value,'4');
   assert.equal(document.getElementById('helocRate').value,'4.45');
   assert.equal(document.getElementById('marginRate').value,'3.95');
+  assert.equal(document.getElementById('horizonYears').value,'25');
+  assert.equal(document.getElementById('horizonYearsValue').textContent,'25 years');
+  const amort=document.getElementById('amortYears');amort.value='30';amort.fire('change');
+  assert.equal(document.getElementById('horizonYears').value,30);
+  const horizon=document.getElementById('horizonYears');horizon.value='10';horizon.fire('input');horizon.fire('change');
+  assert.equal(document.getElementById('horizonYearsValue').textContent,'10 years');
+  assert.equal(vm.runInContext('parseInputs().horizonYears',sandbox),10);
+  const tenYearNet=vm.runInContext('runComparison(parseInputs())[1].summary.finalAfterTaxNetPosition',sandbox);
+  amort.value='25';horizon.value='25';horizon.fire('input');horizon.fire('change');
   assert.ok(document.getElementById('compareTabPanel').classList.contains('active'));
   assert.ok(document.getElementById('compareConfigRows').children.some(row=>row.querySelector('.s-heloc').value==='portfolio_loan_interest'));
   assert.ok(document.getElementById('compareSummaryRows').innerHTML.includes('Margin + compound'));
   assert.ok(document.getElementById('compareSummaryRows').innerHTML.includes('comparison-delta'));
+  assert.ok(document.getElementById('compareSummaryRows').innerHTML.includes('Min Yrs Pay Off:'));
   assert.ok(!document.getElementById('compareSummaryRows').innerHTML.includes('NaN'));
   const comparison=vm.runInContext('runComparison(parseInputs())',sandbox);
+  assert.notEqual(tenYearNet,comparison[1].summary.finalAfterTaxNetPosition);
   assert.equal(comparison.at(-1).summary.advantageVsMatchedMortgage,0);
   assert.ok(comparison[1].summary.matchedMortgageNet>1500000);
   assert.equal(document.getElementById('taxRate').value,'53.5296');

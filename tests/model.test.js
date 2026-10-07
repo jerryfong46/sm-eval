@@ -46,6 +46,15 @@ r=run({mortgagePrincipal:12000,amortYears:1,initialWithdrawal:0,initialHelocRoom
 close(r.monthly[0].mortgageBalance,11000);close(r.monthly[0].helocBalance,1000);
 close(r.monthly[0].portfolio,1000);
 assert.equal(run({mortgagePrincipal:12000,amortYears:25},{enableSmith:false}).summary.mortgagePayoffMonths,null);
+// A taxable-portfolio sale can clear every loan before scheduled mortgage payoff.
+r=run({mortgagePrincipal:12000,amortYears:1,initialWithdrawal:0,startingPortfolio:20000,startingPortfolioAcb:20000},{enableSmith:false});
+assert.equal(r.summary.mortgagePayoffMonths,12);assert.equal(r.summary.debtFreeExitMonths,1);
+// Selling appreciated investments must cover the modeled capital-gains tax too.
+r=run({mortgagePrincipal:12000,amortYears:1,initialWithdrawal:0,startingPortfolio:12000,startingPortfolioAcb:0},{enableSmith:false});
+assert.ok(r.summary.debtFreeExitMonths>1);
+// Borrowed portfolio value is offset by the HELOC and cannot be counted as free cash.
+r=run({mortgagePrincipal:12000,amortYears:1,initialWithdrawal:20000});
+assert.equal(r.summary.debtFreeExitMonths,12);
 // No liquidation tax benefit is invented for unrealized losses.
 r=run({weightedPriceReturn:-.5});close(r.summary.finalEstimatedLiquidationTax,0);
 // Top Ontario tax rates, ordinary vs eligible distributions, and progressive deductions.
