@@ -102,7 +102,6 @@ function addHoldingRow(values = {}) {
   populateInvestmentSelect(row.querySelector(".h-symbol"), false);
   row.querySelector(".h-symbol").value = values.symbol || "VFV";
   row.querySelector(".h-eligible").value = values.eligibleShare ?? INVESTMENTS[row.querySelector(".h-symbol").value].eligibleShare;
-  row.querySelectorAll("input").forEach(input => input.setAttribute("aria-label", input.className));
   row.querySelector(".h-allocation").value = values.allocation ?? 0;
   row.querySelector(".h-return").value = values.priceReturn ?? 6;
   row.querySelector(".h-dividend").value = values.dividendYield ?? 2;
@@ -136,6 +135,7 @@ function updateHelocPrincipalFieldVisibility() {
 function activateTab(targetId) {
   tabButtons.forEach((btn) => {
     btn.classList.toggle("active", btn.dataset.tabTarget === targetId);
+    btn.setAttribute("aria-pressed", String(btn.dataset.tabTarget === targetId));
   });
 
   tabPanels.forEach((panel) => {

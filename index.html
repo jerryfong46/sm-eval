@@ -9,21 +9,22 @@
   <body>
     <main class="container">
       <header>
-        <h1>Smith Maneuver Calculator (Smith Manoeuvre)</h1>
+        <p class="eyebrow">CANADIAN HOMEOWNER PLANNING</p>
+        <h1>Smith Manoeuvre Calculator</h1>
         <p>
           Estimate mortgage paydown, reborrowing, portfolio growth, dividend strategy,
           and tax refund strategy over time.
         </p>
-        <p class="hero-callout">
-          <strong>Compare your Smith Manoeuvre options:</strong> ACB-aware after-tax
-          closeout, dividend-tax/refund netting controls, refund timing lag, external cash required
-          tracking for HELOC servicing, readvanceable prepayment logic, and strategy + sensitivity
-          comparisons under matched assumptions.
-        </p>
+        <nav class="page-nav" aria-label="Calculator sections">
+          <a href="#inputs">1. Set your assumptions</a>
+          <a href="#holdings">2. Choose investments</a>
+          <a href="#results">3. Explore results</a>
+        </nav>
       </header>
 
-      <section class="card">
-        <h2>Inputs</h2>
+      <section class="card" id="inputs">
+        <h2>Your assumptions</h2>
+        <p class="summary">Start with your mortgage, then set your borrowing and cashflow preferences.</p>
         <form id="sim-form" class="form-sections">
           <fieldset class="input-section">
             <legend>You, Mortgage &amp; Home</legend>
@@ -167,7 +168,7 @@
 
           <p class="hint" id="taxHelp">Ontario 2026 rates. Income mode models progressive brackets, basic personal amounts, eligible dividend credits and surtax. Gross income is treated as taxable income before investment activity; excludes CPP/EI, health premium, AMT and other credits. Tax rates and income are held constant over the forecast.</p>
           <p class="hint">Self-capitalization assumes a separate, traceable advance actually pays each interest bill, rather than leaving interest unpaid. Margin loans are paid from cashflow. Margin borrowing is non-recursive: 30% adds $30 per $100 of initial/new HELOC investment, without re-leveraging gains or dividends. Maintenance breaches are flagged; forced sales are not simulated.</p>
-          <fieldset class="holdings-fieldset">
+          <fieldset class="holdings-fieldset" id="holdings">
             <legend>Borrowed funds allocation (stocks / ETFs)</legend>
             <p class="hint">Select a Canadian-listed ETF or bank stock to fetch its latest close, trailing 12-month distribution yield and historical annualized price returns. History excludes dividends, which the forecast adds separately. Historical performance is an assumption, not a prediction. BMO, RY, TD and CM are stocks.</p>
             <div class="market-controls">
@@ -193,12 +194,13 @@
             <button type="button" id="addHolding" class="small-btn">Add Holding</button>
           </fieldset>
 
-          <button type="submit">Run simulation</button>
+          <div class="form-actions"><p class="hint">Ready to compare? Run your forecast using the assumptions above.</p><button type="submit">Run simulation →</button></div>
         </form>
       </section>
 
       <section class="card" id="results" aria-live="polite">
-        <h2>Results</h2>
+        <h2>Your forecast</h2>
+        <p class="hint">Explore your custom strategy, compare alternatives, or test changing rates. Scroll data tables sideways to see all columns.</p>
         <div class="tab-nav">
           <button type="button" class="tab-btn active" data-tab-target="customTabPanel">Custom Strategy</button>
           <button type="button" class="tab-btn" data-tab-target="compareTabPanel">Strategy Compare</button>
@@ -211,7 +213,7 @@
           <div class="chart-wrap">
             <canvas id="chart" width="900" height="320"></canvas>
           </div>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Forecast data, scroll horizontally for more columns">
             <table>
               <thead>
                 <tr>
@@ -255,7 +257,7 @@
             </table>
           </div>
           <button type="button" id="addScenario" class="small-btn">Add Scenario</button>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Forecast data, scroll horizontally for more columns">
             <table>
               <thead>
                 <tr>
@@ -272,7 +274,7 @@
           <div class="chart-wrap">
             <canvas id="compareChart" width="900" height="320"></canvas>
           </div>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Forecast data, scroll horizontally for more columns">
             <table>
               <thead id="compareYearlyHead"></thead>
               <tbody id="compareYearlyRows"></tbody>
@@ -284,7 +286,7 @@
           <p class="summary">
             Evaluate downside/upside and break-even points against a mortgage-only baseline under the same assumption set, using after-tax economic closeout net.
           </p>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Forecast data, scroll horizontally for more columns">
             <table>
               <thead>
                 <tr>
@@ -310,7 +312,7 @@
           <p class="summary">
             Heatmap: change in final after-tax economic closeout net versus Mortgage-only baseline under the same return/rate assumptions.
           </p>
-          <div class="table-wrap">
+          <div class="table-wrap" tabindex="0" role="region" aria-label="Sensitivity heatmap, scroll horizontally for more columns">
             <table class="heatmap-table">
               <thead id="sensitivityHeatmapHead"></thead>
               <tbody id="sensitivityHeatmapRows"></tbody>
@@ -422,11 +424,11 @@
 
     <template id="holding-row-template">
       <tr>
-        <td><select class="h-symbol" aria-label="Investment ticker"></select></td>
-        <td><input class="h-allocation" type="number" min="0" step="1" value="0" /></td>
-        <td><input class="h-return" type="number" min="-99" max="100" step="0.01" value="6" /></td>
-        <td><input class="h-dividend" type="number" min="0" step="0.01" value="2" /></td>
-        <td><input class="h-eligible" type="number" min="0" max="100" value="100" aria-label="Eligible Canadian distribution share" /></td>
+        <td><label class="editor-field"><span>Investment</span><select class="h-symbol" aria-label="Investment ticker"></select></label></td>
+        <td><label class="editor-field"><span>Allocation (%)</span><input class="h-allocation" type="number" min="0" step="1" value="0" /></label></td>
+        <td><label class="editor-field"><span>Annual price return (%)</span><input class="h-return" type="number" min="-99" max="100" step="0.01" value="6" /></label></td>
+        <td><label class="editor-field"><span>Distribution yield (%)</span><input class="h-dividend" type="number" min="0" step="0.01" value="2" /></label></td>
+        <td><label class="editor-field"><span>Eligible Canadian share (%)</span><input class="h-eligible" type="number" min="0" max="100" value="100" aria-label="Eligible Canadian distribution share" /></label></td>
         <td><span class="h-data hint">Illustrative manual assumptions</span><button type="button" class="small-btn fetch-holding">Fetch data</button></td>
         <td><button type="button" class="small-btn remove-holding">Remove</button></td>
       </tr>
@@ -434,37 +436,37 @@
 
     <template id="scenario-row-template">
       <tr>
-        <td><input class="s-enabled" type="checkbox" checked /></td>
-        <td><input class="s-name" type="text" maxlength="40" /></td>
-        <td><select class="s-investment" aria-label="Scenario investment"></select></td>
-        <td><input class="s-margin" type="number" min="0" max="100" value="0" aria-label="Additional margin borrowing percent" /></td>
-        <td><input class="s-smith" type="checkbox" checked /></td>
-        <td>
+        <td><label class="check-field"><input class="s-enabled" type="checkbox" checked /><span>Include in comparison</span></label></td>
+        <td><label class="editor-field"><span>Strategy name</span><input class="s-name" type="text" maxlength="40" /></label></td>
+        <td><label class="editor-field"><span>Investment</span><select class="s-investment" aria-label="Scenario investment"></select></label></td>
+        <td><label class="editor-field"><span>Extra margin borrowing (%)</span><input class="s-margin" type="number" min="0" max="100" value="0" aria-label="Additional margin borrowing percent" /></label></td>
+        <td><label class="check-field"><input class="s-smith" type="checkbox" checked /><span>Use Smith Manoeuvre</span></label></td>
+        <td><label class="editor-field"><span>Dividend handling</span>
           <select class="s-dividend">
             <option value="compound">Compound</option>
             <option value="repay_mortgage">Repay Mortgage</option>
             <option value="pay_heloc">Pay HELOC</option><option value="pay_interest">Pay Interest</option>
           </select>
-        </td>
-        <td>
+        </label></td>
+        <td><label class="editor-field"><span>Tax refund handling</span>
           <select class="s-taxrefund">
             <option value="reinvest">Reinvest</option>
             <option value="repay_mortgage">Repay Mortgage</option>
             <option value="pay_heloc">Pay HELOC</option><option value="pay_interest">Pay Interest</option>
             <option value="cash">Cash</option>
           </select>
-        </td>
-        <td>
+        </label></td>
+        <td><label class="editor-field"><span>HELOC payment strategy</span>
           <select class="s-heloc">
             <option value="self_capitalize">Self-capitalize</option>
             <option value="interest_only_cashflow">Interest only cashflow</option>
             <option value="interest_plus_principal">Interest + principal</option>
           </select>
-        </td>
-        <td><input class="s-heloc-principal" type="number" min="0" step="50" value="0" /></td>
-        <td><input class="s-tax-div" type="checkbox" /></td>
-        <td><input class="s-net-refund" type="checkbox" /></td>
-        <td><input class="s-net-div-compound" type="checkbox" /></td>
+        </label></td>
+        <td><label class="editor-field"><span>HELOC principal ($/month)</span><input class="s-heloc-principal" type="number" min="0" step="50" value="0" /></label></td>
+        <td><label class="check-field"><input class="s-tax-div" type="checkbox" /><span>Tax distributions</span></label></td>
+        <td><label class="check-field"><input class="s-net-refund" type="checkbox" /><span>Settle distribution tax annually</span></label></td>
+        <td><label class="check-field"><input class="s-net-div-compound" type="checkbox" /><span>Compound net dividends</span></label></td>
         <td><button type="button" class="small-btn remove-scenario">Remove</button></td>
       </tr>
     </template>
