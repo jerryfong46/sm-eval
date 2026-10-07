@@ -35,7 +35,14 @@ for(const file of ['model.js','market.js','app.js'])vm.runInContext(fs.readFileS
 (async()=>{
   await new Promise(r=>setImmediate(r));
   assert.ok(document.getElementById('metrics').innerHTML.includes('Mortgage Paid Off'));
-  assert.equal(document.getElementById('compareConfigRows').children.length,6);
+  assert.equal(document.getElementById('compareConfigRows').children.length,7);
+  assert.equal(document.getElementById('holdingsRows').children.length,1);
+  assert.equal(document.getElementById('holdingsRows').children[0].querySelector('.h-symbol').value,'VFV');
+  assert.equal(document.getElementById('mortgageRate').value,'4');
+  assert.equal(document.getElementById('helocRate').value,'4.45');
+  assert.equal(document.getElementById('marginRate').value,'3.95');
+  assert.ok(document.getElementById('compareTabPanel').classList.contains('active'));
+  assert.ok(document.getElementById('compareConfigRows').children.some(row=>row.querySelector('.s-heloc').value==='portfolio_loan_interest'));
   assert.ok(document.getElementById('compareSummaryRows').innerHTML.includes('Margin + compound'));
   assert.equal(document.getElementById('taxRate').value,'53.5296');
   assert.equal(document.getElementById('grossIncomeWrap').hidden,true);

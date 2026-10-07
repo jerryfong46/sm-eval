@@ -46,10 +46,11 @@ const SCENARIO_COLOR_PALETTE = [
 const DEFAULT_SCENARIOS = [
   { name: "1. Margin + compound", dividendUse: "compound", marginRatio: .30 },
   { name: "2. Capitalize + compound", dividendUse: "compound" },
-  { name: "3. Dividend mortgage accelerator", dividendUse: "repay_mortgage" },
-  { name: "4. Dividends service interest", dividendUse: "pay_interest", helocPaymentStrategy: "interest_only_cashflow" },
-  { name: "5. Reduce investment debt", dividendUse: "pay_heloc", taxRefundUse: "pay_heloc", helocPaymentStrategy: "interest_only_cashflow" },
-  { name: "6. Mortgage only", enableSmith: false, dividendUse: "compound", taxRefundUse: "cash" },
+  { name: "3. Portfolio loan pays HELOC interest", dividendUse: "compound", helocPaymentStrategy: "portfolio_loan_interest" },
+  { name: "4. Dividend mortgage accelerator", dividendUse: "repay_mortgage" },
+  { name: "5. Dividends service interest", dividendUse: "pay_interest", helocPaymentStrategy: "interest_only_cashflow" },
+  { name: "6. Reduce investment debt", dividendUse: "pay_heloc", taxRefundUse: "pay_heloc", helocPaymentStrategy: "interest_only_cashflow" },
+  { name: "7. Mortgage only", enableSmith: false, dividendUse: "compound", taxRefundUse: "cash" },
 ].map(s => ({enabled: true, enableSmith: true, taxRefundUse: "repay_mortgage",
   helocPaymentStrategy: "self_capitalize", helocPrincipalPayment: 0, taxDividends: true,
   netTaxRefundOfDividendTax: true, compoundNetDividends: true, marginRatio: 0, ...s}));
@@ -103,15 +104,14 @@ function addHoldingRow(values = {}) {
   row.querySelector(".h-symbol").value = values.symbol || "VFV";
   row.querySelector(".h-eligible").value = values.eligibleShare ?? INVESTMENTS[row.querySelector(".h-symbol").value].eligibleShare;
   row.querySelector(".h-allocation").value = values.allocation ?? 0;
-  row.querySelector(".h-return").value = values.priceReturn ?? 6;
-  row.querySelector(".h-dividend").value = values.dividendYield ?? 2;
+  row.querySelector(".h-return").value = (values.priceReturn ?? 6).toFixed(1);
+  row.querySelector(".h-dividend").value = (values.dividendYield ?? 2).toFixed(1);
   holdingsRowsEl.appendChild(row);
 }
 
 function loadDefaultHoldings() {
   if (holdingsRowsEl.children.length > 0) return;
-  addHoldingRow({ symbol: "RY", allocation: 50, priceReturn: 6.5, dividendYield: 3.8 });
-  addHoldingRow({ symbol: "TD", allocation: 50, priceReturn: 6.0, dividendYield: 4.1 });
+  addHoldingRow({ symbol: "VFV", allocation: 100, priceReturn: 6.0, dividendYield: 2.0 });
 }
 
 function updateTaxRateFromBracket() {
@@ -451,7 +451,7 @@ function runSensitivity(inputs) {
   };
   const currentScenario = buildCurrentPlanScenario(inputs);
   const conservativeScenario = {
-    ...DEFAULT_SCENARIOS[4],
+    ...DEFAULT_SCENARIOS[5],
     name: "Conservative Smith",
     taxDividends: inputs.taxDividends,
     netTaxRefundOfDividendTax: inputs.netTaxRefundOfDividendTax,
@@ -718,14 +718,15 @@ function renderComparisonSummary(results) {
     .map((result) => {
       const netClass = result.summary.finalAfterTaxNetPosition < 0 ? "negative" : "";
       return `<tr>
+        <td class="comparison-key ${netClass}">${currency.format(result.summary.finalAfterTaxNetPosition)}</td>
+        <td class="comparison-key">${payoffText(result.summary)}</td>
         <td>${escapeHtml(result.scenario.name)}${result.summary.warnings.map(w => `<small class="forecast-warning">${escapeHtml(w)}</small>`).join("")}</td>
         <td>${currency.format(result.summary.finalMortgageBalance)}</td>
         <td>${currency.format(result.summary.finalHelocBalance)}</td><td>${currency.format(result.summary.finalMarginBalance)}</td>
         <td>${currency.format(result.summary.finalPortfolio)}</td>
         <td>${currency.format(result.summary.finalPortfolio - result.summary.finalEstimatedLiquidationTax - result.summary.finalHelocBalance - result.summary.finalMarginBalance)}</td>
         <td>${currency.format(result.summary.finalEstimatedLiquidationTax)}</td><td>${currency.format(result.summary.cumulativeExternalContributions)}</td>
-        <td>${payoffText(result.summary)}</td><td>${result.summary.endingAge}</td>
-        <td class="${netClass}">${currency.format(result.summary.finalAfterTaxNetPosition)}</td>
+        <td>${result.summary.endingAge}</td>
       </tr>`;
     })
     .join("");
@@ -964,7 +965,7 @@ loadDefaultHoldings();
 loadDefaultScenarios();
 updateTaxRateFromBracket();
 updateHelocPrincipalFieldVisibility();
-activateTab("customTabPanel");
+activateTab("compareTabPanel");
 runAndRender();
 
 initializeMarketControls();

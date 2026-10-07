@@ -59,8 +59,8 @@ async function fetchMarket(symbol, force = false) {
 }
 function applyMarketToRow(row, data) {
   const history = chosenHistory(data);
-  if (history) row.querySelector('.h-return').value = (history.rate * 100).toFixed(4);
-  row.querySelector('.h-dividend').value = (data.dividendYield * 100).toFixed(4);
+  if (history) row.querySelector('.h-return').value = (history.rate * 100).toFixed(1);
+  row.querySelector('.h-dividend').value = (data.dividendYield * 100).toFixed(1);
   const status = row.querySelector('.h-data');
   status.replaceChildren();
   const link = document.createElement('a');
@@ -110,8 +110,8 @@ function initializeMarketControls() {
     if (!row) return;
     if (event.target.classList.contains('h-symbol')) {
       row.querySelector('.h-eligible').value = INVESTMENTS[event.target.value].eligibleShare;
-      row.querySelector('.h-return').value = 5;
-      row.querySelector('.h-dividend').value = 2;
+      row.querySelector('.h-return').value = '5.0';
+      row.querySelector('.h-dividend').value = '2.0';
       fetchHoldingRow(row);
     } else {
       if (event.target.matches('.h-return, .h-dividend, .h-eligible')) {

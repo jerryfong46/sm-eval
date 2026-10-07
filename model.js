@@ -103,7 +103,18 @@
       if (scenario.dividendUse === 'pay_interest') {
         interestCash = Math.min(dividendCash, hi); dividendCash -= interestCash;
       }
-      if (scenario.helocPaymentStrategy === 'self_capitalize' && scenario.dividendUse !== 'pay_interest') {
+      if (scenario.helocPaymentStrategy === 'portfolio_loan_interest') {
+        // Draw the portfolio loan only for the HELOC interest bill. Its own
+        // interest remains a cash expense and is never added to loan principal.
+        const due = Math.max(0, hi - interestCash);
+        const loanRoom = Math.max(0, portfolio * (inputs.marginMaintenanceLtv ?? .5) - margin);
+        const financed = Math.min(due, loanRoom);
+        margin += financed;
+        if (due - financed > .005) {
+          spendCash(due - financed);
+          warnings.add('Portfolio loan room limits HELOC interest financing; the remainder needs cash.');
+        }
+      } else if (scenario.helocPaymentStrategy === 'self_capitalize' && scenario.dividendUse !== 'pay_interest') {
         const financed = Math.min(hi, capacity()); heloc += financed;
         if (hi - financed > .005) { spendCash(hi - financed); warnings.add('HELOC room exhausted: some interest needs external cash.'); }
       } else {

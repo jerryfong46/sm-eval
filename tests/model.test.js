@@ -26,6 +26,15 @@ r=run({weightedDividendYield:.12,taxRefundLagMonths:12},{dividendUse:'pay_intere
 r=run({weightedDividendYield:.12,helocRate:.06},{dividendUse:'pay_interest'});close(r.summary.finalHelocBalance,100000);close(r.summary.cumulativeHelocInterest,6000);close(r.summary.cumulativeExternalContributions,0);close(r.summary.finalCashBalance,5400);close(r.summary.finalSmithValueAfterTax,5400);
 // Margin interest is included in deductions and margin principal in liquidation.
 r=run({marginRate:.12},{marginRatio:.3});close(r.summary.cumulativeMarginInterest,3600);close(r.summary.cumulativeExternalContributions,3600);close(r.summary.finalSmithValueAfterTax,-1800);
+// Portfolio loan advances pay HELOC interest only; the loan's own interest is paid in cash.
+r=run({helocRate:.12,marginRate:.12},{helocPaymentStrategy:'portfolio_loan_interest'});
+close(r.summary.finalHelocBalance,100000);close(r.summary.finalMarginBalance,12000);
+close(r.summary.finalPortfolio,100000);close(r.summary.cumulativeMarginInterest,660);
+close(r.summary.cumulativeExternalContributions,660);
+// Portfolio borrowing stops at the modeled maintenance limit, with the shortfall paid in cash.
+r=run({helocRate:.12,marginRate:0,marginMaintenanceLtv:.005},{helocPaymentStrategy:'portfolio_loan_interest'});
+close(r.summary.finalMarginBalance,500);close(r.summary.cumulativeExternalContributions,11500);
+assert.ok(r.summary.warnings.some(w=>w.includes('Portfolio loan room')));
 // Capacity excludes impossible borrowing and self-funded interest is recorded as external.
 r=run({initialHelocRoom:10000,helocRate:.12},{helocPaymentStrategy:'self_capitalize'});close(r.summary.finalHelocBalance,10000);assert.ok(r.summary.warnings.length);close(r.summary.cumulativeExternalContributions,1200);
 // Mortgage-only comparisons never use the optional initial HELOC withdrawal.
@@ -45,4 +54,4 @@ close(monthlyPayment(12000,0,12),1000);
 // Freed mortgage payments stay in cash after early payoff under the matched budget.
 r=run({mortgagePrincipal:12000,amortYears:1,initialWithdrawal:0,extraPayment:1000},{enableSmith:false});
 assert.equal(r.summary.mortgagePayoffMonths,6);close(r.summary.finalCashBalance,12000);
-console.log('16 financial model checks passed');
+console.log('18 financial model checks passed');

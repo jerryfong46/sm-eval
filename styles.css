@@ -506,6 +506,18 @@ th { white-space: normal; min-width: 120px; max-width: 220px; background: #f2f3f
 th, td { padding: 12px 14px; }
 .table-wrap > table:not(.holding-table):not(.scenario-table) td { font-variant-numeric: tabular-nums; }
 .table-wrap > table:not(.holding-table):not(.scenario-table) tbody tr:nth-child(even) { background: #faf9f9; }
+.compare-summary-table th:nth-child(-n+2),
+.compare-summary-table td:nth-child(-n+2) {
+  background: #f8edf0;
+  color: #6b1733;
+  font-weight: 700;
+  border-bottom-color: #dfc4cd;
+}
+.compare-summary-table th:nth-child(1) { min-width: 190px; }
+.compare-summary-table th:nth-child(2) { min-width: 145px; }
+.compare-summary-table td:nth-child(1) { font-size: 1rem; }
+.compare-summary-table td:nth-child(3) { min-width: 240px; white-space: normal; }
+.table-wrap > .compare-summary-table tbody tr:nth-child(even) td:nth-child(-n+2) { background: #f3e4e9; }
 .metric { padding: 18px; }
 .metric p { overflow-wrap: anywhere; }
 .summary { line-height: 1.6; }

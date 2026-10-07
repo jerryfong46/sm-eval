@@ -36,7 +36,7 @@
               </label>
               <label>
                 Mortgage annual rate (%)
-                <input type="number" id="mortgageRate" min="0" step="0.01" value="4.1" required />
+                <input type="number" id="mortgageRate" min="0" step="0.01" value="4" required />
               </label>
               <label>
                 Amortization (years)
@@ -75,12 +75,12 @@
               </label>
               <label>Initial HELOC withdrawal to invest now ($)<input type="number" id="initialWithdrawal" min="0" step="1000" value="0" required /></label>
               <label>Available HELOC room today ($)<input type="number" id="initialHelocRoom" min="0" step="1000" value="60000" required /></label>
-              <label>Margin loan annual rate (%)<input type="number" id="marginRate" min="0" max="100" step="0.01" value="6" required /></label>
+              <label>Portfolio loan annual rate (%)<input type="number" id="marginRate" min="0" max="100" step="0.01" value="3.95" required /></label>
               <label>Custom strategy: extra margin borrowing (% of new investment)<input type="number" id="marginRatio" min="0" max="100" step="1" value="0" required /></label>
               <label>Margin maintenance debt / portfolio limit (%)<input type="number" id="marginMaintenanceLtv" min="1" max="99" value="50" required /></label>
               <label>
                 HELOC annual rate (%)
-                <input type="number" id="helocRate" min="0" step="0.01" value="4.6" required />
+                <input type="number" id="helocRate" min="0" step="0.01" value="4.45" required />
               </label>
               <label>
                 HELOC payment strategy
@@ -167,7 +167,7 @@
           </fieldset>
 
           <p class="hint" id="taxHelp">Ontario 2026 rates. Income mode models progressive brackets, basic personal amounts, eligible dividend credits and surtax. Gross income is treated as taxable income before investment activity; excludes CPP/EI, health premium, AMT and other credits. Tax rates and income are held constant over the forecast.</p>
-          <p class="hint">Self-capitalization assumes a separate, traceable advance actually pays each interest bill, rather than leaving interest unpaid. Margin loans are paid from cashflow. Margin borrowing is non-recursive: 30% adds $30 per $100 of initial/new HELOC investment, without re-leveraging gains or dividends. Maintenance breaches are flagged; forced sales are not simulated.</p>
+          <p class="hint">Self-capitalization assumes a separate, traceable advance actually pays each interest bill, rather than leaving interest unpaid. In the portfolio-loan strategy, new advances pay only HELOC interest, up to the modeled portfolio-loan limit; portfolio-loan interest and any shortfall use cash. Additional margin borrowing is non-recursive: 30% adds $30 per $100 of initial/new HELOC investment, without re-leveraging gains or dividends. Maintenance breaches are flagged; forced sales are not simulated.</p>
           <fieldset class="holdings-fieldset" id="holdings">
             <legend>Borrowed funds allocation (stocks / ETFs)</legend>
             <p class="hint">Select a Canadian-listed ETF or bank stock to fetch its latest close, trailing 12-month distribution yield and historical annualized price returns. History excludes dividends, which the forecast adds separately. Historical performance is an assumption, not a prediction. BMO, RY, TD and CM are stocks.</p>
@@ -202,12 +202,12 @@
         <h2>Your forecast</h2>
         <p class="hint">Explore your custom strategy, compare alternatives, or test changing rates. Scroll data tables sideways to see all columns.</p>
         <div class="tab-nav">
-          <button type="button" class="tab-btn active" data-tab-target="customTabPanel">Custom Strategy</button>
-          <button type="button" class="tab-btn" data-tab-target="compareTabPanel">Strategy Compare</button>
+          <button type="button" class="tab-btn" data-tab-target="customTabPanel">Custom Strategy</button>
+          <button type="button" class="tab-btn active" data-tab-target="compareTabPanel">Strategy Compare</button>
           <button type="button" class="tab-btn" data-tab-target="sensitivityTabPanel">Sensitivity</button>
         </div>
 
-        <div id="customTabPanel" class="tab-panel active">
+        <div id="customTabPanel" class="tab-panel">
           <div class="metrics" id="metrics"></div>
           <p id="strategySummary" class="summary"></p>
           <div class="chart-wrap">
@@ -232,9 +232,9 @@
           </div>
         </div>
 
-        <div id="compareTabPanel" class="tab-panel">
+        <div id="compareTabPanel" class="tab-panel active">
           <p class="summary">
-            Presets run from most leverage to least leverage. Customize each strategy and investment separately. Shared mix uses the holdings allocations above; single-ticker comparisons use that ticker’s row assumptions or fetched history. Lower leverage does not guarantee lower market risk.
+            Compare different borrowing and repayment methods. Customize each strategy and investment separately. Shared mix uses the holdings allocations above; single-ticker comparisons use that ticker’s row assumptions or fetched history. Loan rates are editable planning assumptions.
           </p>
           <div class="table-wrap">
             <table class="scenario-table">
@@ -258,14 +258,16 @@
           </div>
           <button type="button" id="addScenario" class="small-btn">Add Scenario</button>
           <div class="table-wrap" tabindex="0" role="region" aria-label="Forecast data, scroll horizontally for more columns">
-            <table>
+            <table class="compare-summary-table">
               <thead>
                 <tr>
+                  <th>Final After-tax Economic Closeout Net</th>
+                  <th>Mortgage Paid Off</th>
                   <th>Scenario</th>
                   <th>Final Mortgage</th>
                   <th>Final HELOC</th><th>Final Margin Loan</th>
                   <th>Final Portfolio</th>
-                  <th>After-tax Portfolio Less Loans</th><th>Liquidation Tax</th><th>External Cash Required</th><th>Mortgage Paid Off</th><th>Ending Age</th><th>Final After-tax Economic Closeout Net</th>
+                  <th>After-tax Portfolio Less Loans</th><th>Liquidation Tax</th><th>External Cash Required</th><th>Ending Age</th>
                 </tr>
               </thead>
               <tbody id="compareSummaryRows"></tbody>
@@ -426,8 +428,8 @@
       <tr>
         <td><label class="editor-field"><span>Investment</span><select class="h-symbol" aria-label="Investment ticker"></select></label></td>
         <td><label class="editor-field"><span>Allocation (%)</span><input class="h-allocation" type="number" min="0" step="1" value="0" /></label></td>
-        <td><label class="editor-field"><span>Annual price return (%)</span><input class="h-return" type="number" min="-99" max="100" step="0.01" value="6" /></label></td>
-        <td><label class="editor-field"><span>Distribution yield (%)</span><input class="h-dividend" type="number" min="0" step="0.01" value="2" /></label></td>
+        <td><label class="editor-field"><span>Annual price return (%)</span><input class="h-return" type="number" min="-99" max="100" step="0.1" value="6.0" /></label></td>
+        <td><label class="editor-field"><span>Distribution yield (%)</span><input class="h-dividend" type="number" min="0" step="0.1" value="2.0" /></label></td>
         <td><label class="editor-field"><span>Eligible Canadian share (%)</span><input class="h-eligible" type="number" min="0" max="100" value="100" aria-label="Eligible Canadian distribution share" /></label></td>
         <td><span class="h-data hint">Illustrative manual assumptions</span><button type="button" class="small-btn fetch-holding">Fetch data</button></td>
         <td><button type="button" class="small-btn remove-holding">Remove</button></td>
@@ -459,6 +461,7 @@
         <td><label class="editor-field"><span>HELOC payment strategy</span>
           <select class="s-heloc">
             <option value="self_capitalize">Self-capitalize</option>
+            <option value="portfolio_loan_interest">Portfolio loan pays HELOC interest</option>
             <option value="interest_only_cashflow">Interest only cashflow</option>
             <option value="interest_plus_principal">Interest + principal</option>
           </select>
