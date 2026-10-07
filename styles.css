@@ -516,8 +516,13 @@ th, td { padding: 12px 14px; }
 .compare-summary-table th:nth-child(1) { min-width: 190px; }
 .compare-summary-table th:nth-child(2) { min-width: 145px; }
 .compare-summary-table td:nth-child(1) { font-size: 1rem; }
-.compare-summary-table td:nth-child(3) { min-width: 240px; white-space: normal; }
+.compare-summary-table th:nth-child(3) { min-width: 220px; }
+.compare-summary-table th:nth-child(4), .compare-summary-table th:nth-child(5) { min-width: 180px; }
+.compare-summary-table td:nth-child(3) { min-width: 220px; white-space: normal; }
 .table-wrap > .compare-summary-table tbody tr:nth-child(even) td:nth-child(-n+2) { background: #f3e4e9; }
+.comparison-explainer { padding: 14px 18px; border-left: 4px solid var(--accent); background: #f8edf0; color: #3c3c3e; line-height: 1.55; }
+.comparison-assumption { margin: 0 0 18px; padding: 14px 18px; border: 1px solid #dfc4cd; border-radius: 10px; color: #6b1733; background: #fff9fa; line-height: 1.55; font-weight: 600; }
+.comparison-delta { font-weight: 700; }
 .metric { padding: 18px; }
 .metric p { overflow-wrap: anywhere; }
 .summary { line-height: 1.6; }

@@ -80,12 +80,17 @@
     const repayHeloc = amount => { const applied = Math.min(heloc, amount); heloc -= applied; cash += amount - applied; };
     const spendCash = amount => { const used = Math.min(cash, amount); cash -= used; external += amount - used; };
     for (let month = 1; month <= months; month++) {
+      const externalAtMonthStart = external;
       const mortgageInterest = mortgage * monthlyMortgageRate;
       const principal = Math.min(mortgage, Math.max(0, payment + inputs.extraPayment - mortgageInterest));
       // Keep a matched monthly mortgage budget across strategies. Once paid off,
       // freed scheduled payments accumulate as cash, rather than disappearing.
       cash += Math.max(0, payment + inputs.extraPayment - mortgageInterest - principal);
       mortgage -= principal; borrow(principal);
+      // For a mortgage-only comparison, invest the same outside cash the
+      // selected Smith strategy spent on loan servicing in this month.
+      const outsideInvestment = Math.max(0, inputs.cashInvestmentSchedule?.[month - 1] || 0);
+      if (outsideInvestment) { external += outsideInvestment; invest(outsideInvestment, false); }
       const hi = heloc * inputs.helocRate / 12;
       const mi = margin * (inputs.marginRate || 0) / 12;
       interestTotal += hi; marginInterestTotal += mi; annualInterest += hi + mi;
@@ -164,12 +169,13 @@
         netPosition: inputs.homeValue - mortgage + smithPre, netAfterTax: inputs.homeValue - mortgage + smithAfter,
         liquidationTax, taxRefundApplied: appliedRefundYear, cashBalance: cash,
         pendingTaxRefundReceivable: pendingRefund, cumulativeExternalContributions: external,
+        externalCashOutlay: external - externalAtMonthStart,
         annualDividendTax: taxYear?.dividendTax || 0, annualInterestDeductionBenefit: taxYear?.relief || 0,
         annualGrossDividends, annualLoanInterest: annualInterest});
       if (yearEnd) { annualInterest = 0; annualEligible = 0; annualOrdinary = 0; annualPaidTax = 0; appliedRefundYear = 0; annualGrossDividends = 0; }
     }
     const last = timeline[timeline.length - 1];
-    return {scenario, yearly: timeline.filter(x => x.month % 12 === 0 || x.month === months), summary: {
+    return {scenario, monthly: timeline, yearly: timeline.filter(x => x.month % 12 === 0 || x.month === months), summary: {
       finalMortgageBalance: mortgage, finalHelocBalance: heloc, finalMarginBalance: margin, finalPortfolio: portfolio,
       finalPortfolioAcb: acb, finalSmithValuePreTax: last.smithValuePreTax, finalSmithValueAfterTax: last.smithValueAfterTax,
       finalPreTaxNetPosition: last.netPosition, finalAfterTaxNetPosition: last.netAfterTax,

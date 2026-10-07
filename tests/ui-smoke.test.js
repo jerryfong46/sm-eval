@@ -44,6 +44,12 @@ for(const file of ['model.js','market.js','app.js'])vm.runInContext(fs.readFileS
   assert.ok(document.getElementById('compareTabPanel').classList.contains('active'));
   assert.ok(document.getElementById('compareConfigRows').children.some(row=>row.querySelector('.s-heloc').value==='portfolio_loan_interest'));
   assert.ok(document.getElementById('compareSummaryRows').innerHTML.includes('Margin + compound'));
+  assert.ok(document.getElementById('compareSummaryRows').innerHTML.includes('comparison-delta'));
+  assert.ok(!document.getElementById('compareSummaryRows').innerHTML.includes('NaN'));
+  assert.ok(document.getElementById('forecastAssumptionAlert').textContent.includes('annual price growth'));
+  const comparison=vm.runInContext('runComparison(parseInputs())',sandbox);
+  assert.equal(comparison.at(-1).summary.advantageVsMatchedMortgage,0);
+  assert.ok(comparison[1].summary.matchedMortgageNet>1500000);
   assert.equal(document.getElementById('taxRate').value,'53.5296');
   assert.equal(document.getElementById('grossIncomeWrap').hidden,true);
   const bracket=document.getElementById('taxBracket');bracket.value='income';bracket.fire('change');

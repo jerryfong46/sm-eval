@@ -16,7 +16,7 @@ Compare Canadian mortgage paydown and leveraged investment strategies, with dist
 - Mortgage payoff month/age, ending age, separate HELOC and margin balances, liquidation tax, external cash required, annual distributions/taxes/interest benefits and comparison charts.
 - HELOC room expands with mortgage principal paid, bounded by modeled 65% HELOC and 80% combined loan-to-value limits. Unavailable investment advances are skipped and flagged; interest funding gaps use external cash.
 - Same monthly mortgage budget across comparisons: freed payments after payoff accumulate as cash.
-- Sensitivity scenarios, break-even returns and return/rate heatmap.
+- Sensitivity scenarios, break-even returns and return/rate heatmap. The comparator pays the mortgage normally and invests each Smith strategy's monthly outside cash outlays in the same holding, so the return on that alternative is visible.
 
 ## Run locally with live data
 
@@ -42,7 +42,7 @@ Opening `index.html` directly, using a plain static file server, or publishing o
 - ETF distribution tax breakdowns are not inferred from dividend yield. ROC, distributed capital gains, foreign tax credits and non-cash distributions/ACB adjustments are excluded; enter updated assumptions after checking issuer tax information.
 - Annual settlement nets deductible-interest savings against distribution taxes. Negative settlements remain liabilities until paid, including at closeout; monthly withholding is reconciled against the annual calculation.
 - Liquidation taxes only positive unrealized gains using ACB and the editable inclusion rate (default 50%). Income mode applies progressive tax to terminal gains. No tax credit is invented for losses.
-- After-tax economic closeout = home equity + portfolio after liquidation tax + cash + pending tax settlements − HELOC − margin debt − cumulative external loan-servicing contributions. The separate portfolio-less-loans figure excludes home equity/cash/external contributions.
+- After-tax economic closeout = home equity + portfolio after liquidation tax + cash + pending tax settlements − HELOC − margin debt − cumulative external cash contributions. The separate portfolio-less-loans figure excludes home equity/cash/external contributions. “Vs mortgage + investing cash” compares this value to a mortgage-only path that invests the same monthly cash each Smith strategy had to provide from outside; this is a modeled opportunity-cost comparison, not a market-risk-adjusted forecast.
 - Mortgage payoff clears the mortgage alone: investment loans can remain. No mortgage penalties, lender-specific prepayment limits, trading costs, inflation, home-price changes or return volatility are modeled.
 
 Sources: [CRA 2026 tax brackets](https://www.canada.ca/en/revenue-agency/services/tax/individuals/tax-rates-brackets/current-year.html), [Ontario personal amounts and surtax](https://www.canada.ca/en/revenue-agency/services/forms-publications/payroll/t4032-payroll-deductions-tables/t4032on-jan/t4032on-january-general-information.html), [interest deductibility](https://www.canada.ca/en/revenue-agency/services/tax/technical-information/income-tax/income-tax-folios-index/series-3-property-investments-savings-plans/series-3-property-investments-savings-plan-folio-6-interest/income-tax-folio-s3-f6-c1-interest-deductibility.html), [ETF tax distribution types](https://www.blackrock.com/ca/investors/en/resources/faqs/distributions-and-tax).

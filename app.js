@@ -312,6 +312,23 @@ function runScenarioSimulation(inputs, scenario) {
   return SMModel.simulate(inputs, scenario);
 }
 
+function mortgageOnlyScenario(inputs) {
+  return {
+    name: "Mortgage-only baseline", enableSmith: false, dividendUse: "compound",
+    taxRefundUse: "cash", helocPaymentStrategy: "self_capitalize",
+    helocPrincipalPayment: 0, taxDividends: inputs.taxDividends,
+    netTaxRefundOfDividendTax: inputs.netTaxRefundOfDividendTax,
+    compoundNetDividends: true,
+  };
+}
+
+function runMatchedMortgageAlternative(inputs, strategyResult) {
+  return runScenarioSimulation({
+    ...inputs,
+    cashInvestmentSchedule: strategyResult.monthly.map(month => month.externalCashOutlay),
+  }, mortgageOnlyScenario(inputs));
+}
+
 function runComparison(inputs) {
   const scenarios = parseScenarioConfigs().filter((scenario) => scenario.enabled);
 
@@ -322,7 +339,13 @@ function runComparison(inputs) {
     };
     const resolved = resolveScenarioInvestment(inputs, scenario.investment);
     withColor.name = `${scenario.name} · ${resolved.label}`;
-    return runScenarioSimulation(resolved.inputs, withColor);
+    const result = runScenarioSimulation(resolved.inputs, withColor);
+    const matched = scenario.enableSmith
+      ? runMatchedMortgageAlternative(resolved.inputs, result)
+      : result;
+    result.summary.matchedMortgageNet = matched.summary.finalAfterTaxNetPosition;
+    result.summary.advantageVsMatchedMortgage = result.summary.finalAfterTaxNetPosition - matched.summary.finalAfterTaxNetPosition;
+    return result;
   });
 }
 
@@ -367,12 +390,12 @@ function countYearsBelowBaseline(result, baseline) {
   return count;
 }
 
-function calculateBreakEvenReturn(inputs, scenario, baselineScenario) {
+function calculateBreakEvenReturn(inputs, scenario) {
   const deltaAtReturn = (annualReturn) => {
     const adjustedInputs = { ...inputs, weightedPriceReturn: clampAnnualReturn(annualReturn) };
-    const strategyNet = runScenarioSimulation(adjustedInputs, scenario).summary.finalAfterTaxNetPosition;
-    const baselineNet = runScenarioSimulation(adjustedInputs, baselineScenario).summary.finalAfterTaxNetPosition;
-    return strategyNet - baselineNet;
+    const strategyResult = runScenarioSimulation(adjustedInputs, scenario);
+    const baseline = runMatchedMortgageAlternative(adjustedInputs, strategyResult);
+    return strategyResult.summary.finalAfterTaxNetPosition - baseline.summary.finalAfterTaxNetPosition;
   };
 
   let low = -0.1;
@@ -407,7 +430,7 @@ function calculateBreakEvenReturn(inputs, scenario, baselineScenario) {
   };
 }
 
-function buildSensitivityHeatmap(inputs, currentScenario, baselineScenario) {
+function buildSensitivityHeatmap(inputs, currentScenario) {
   const returnAdjustments = [-0.04, -0.02, 0, 0.02, 0.04];
   const helocAdjustments = [-0.02, -0.01, 0, 0.01, 0.02];
 
@@ -418,7 +441,7 @@ function buildSensitivityHeatmap(inputs, currentScenario, baselineScenario) {
         helocRateDelta: helocAdj,
       });
       const result = runScenarioSimulation(adjustedInputs, currentScenario);
-      const baseline = runScenarioSimulation(adjustedInputs, baselineScenario);
+      const baseline = runMatchedMortgageAlternative(adjustedInputs, result);
       const delta = result.summary.finalAfterTaxNetPosition - baseline.summary.finalAfterTaxNetPosition;
       return {
         helocAdj,
@@ -438,17 +461,7 @@ function buildSensitivityHeatmap(inputs, currentScenario, baselineScenario) {
 }
 
 function runSensitivity(inputs) {
-  const baselineScenario = {
-    name: "Mortgage-only Baseline",
-    enableSmith: false,
-    dividendUse: "compound",
-    taxRefundUse: "cash",
-    helocPaymentStrategy: "self_capitalize",
-    helocPrincipalPayment: 0,
-    taxDividends: inputs.taxDividends,
-    netTaxRefundOfDividendTax: inputs.netTaxRefundOfDividendTax,
-    compoundNetDividends: true,
-  };
+  const baselineScenario = mortgageOnlyScenario(inputs);
   const currentScenario = buildCurrentPlanScenario(inputs);
   const conservativeScenario = {
     ...DEFAULT_SCENARIOS[5],
@@ -479,7 +492,6 @@ function runSensitivity(inputs) {
     stressInputs,
     stressScenario
   );
-  const stressBaselineResult = runScenarioSimulation(stressInputs, baselineScenario);
   const upsideInputs = withInputAdjustments(inputs, {
     weightedPriceReturnDelta: 0.02,
     helocRateDelta: -0.01,
@@ -490,22 +502,21 @@ function runSensitivity(inputs) {
     upsideInputs,
     upsideScenario
   );
-  const upsideBaselineResult = runScenarioSimulation(upsideInputs, baselineScenario);
 
   const matrix = [
     { result: baselineResult, baseline: baselineResult },
-    { result: currentResult, baseline: baselineResult },
-    { result: conservativeResult, baseline: baselineResult },
-    { result: stressResult, baseline: stressBaselineResult },
-    { result: upsideResult, baseline: upsideBaselineResult },
+    { result: currentResult, baseline: runMatchedMortgageAlternative(inputs, currentResult) },
+    { result: conservativeResult, baseline: runMatchedMortgageAlternative(inputs, conservativeResult) },
+    { result: stressResult, baseline: runMatchedMortgageAlternative(stressInputs, stressResult) },
+    { result: upsideResult, baseline: runMatchedMortgageAlternative(upsideInputs, upsideResult) },
   ].map(({ result, baseline }) => ({
     ...result,
     deltaVsBaseline: result.summary.finalAfterTaxNetPosition - baseline.summary.finalAfterTaxNetPosition,
     yearsBelowBaseline: countYearsBelowBaseline(result, baseline),
   }));
 
-  const breakEven = calculateBreakEvenReturn(inputs, currentScenario, baselineScenario);
-  const heatmap = buildSensitivityHeatmap(inputs, currentScenario, baselineScenario);
+  const breakEven = calculateBreakEvenReturn(inputs, currentScenario);
+  const heatmap = buildSensitivityHeatmap(inputs, currentScenario);
 
   return {
     matrix,
@@ -710,7 +721,7 @@ function renderYearlyRows(yearly) {
 function renderComparisonSummary(results) {
   if (!results.length) {
     compareSummaryRowsEl.innerHTML =
-      '<tr><td colspan="11" style="text-align:left;">Enable at least one scenario to compare.</td></tr>';
+      '<tr><td colspan="13" style="text-align:left;">Enable at least one scenario to compare.</td></tr>';
     return;
   }
 
@@ -721,6 +732,8 @@ function renderComparisonSummary(results) {
         <td class="comparison-key ${netClass}">${currency.format(result.summary.finalAfterTaxNetPosition)}</td>
         <td class="comparison-key">${payoffText(result.summary)}</td>
         <td>${escapeHtml(result.scenario.name)}${result.summary.warnings.map(w => `<small class="forecast-warning">${escapeHtml(w)}</small>`).join("")}</td>
+        <td>${currency.format(result.summary.matchedMortgageNet)}</td>
+        <td class="comparison-delta ${result.summary.advantageVsMatchedMortgage < 0 ? 'negative' : ''}">${formatSignedCurrency(result.summary.advantageVsMatchedMortgage)}</td>
         <td>${currency.format(result.summary.finalMortgageBalance)}</td>
         <td>${currency.format(result.summary.finalHelocBalance)}</td><td>${currency.format(result.summary.finalMarginBalance)}</td>
         <td>${currency.format(result.summary.finalPortfolio)}</td>
@@ -836,6 +849,7 @@ function labelForTaxRefundUse(value) {
 
 function labelForHelocStrategy(value) {
   if (value === "self_capitalize") return "Self-capitalize";
+  if (value === "portfolio_loan_interest") return "Portfolio loan pays HELOC interest";
   if (value === "interest_only_cashflow") return "Interest from cashflow";
   return "Interest + principal payment";
 }
@@ -867,6 +881,13 @@ function renderStrategySummary(inputs, summary) {
 function runAndRender() {
   updateTaxRateFromBracket();
   const inputs = parseInputs();
+  document.getElementById("forecastAssumptionAlert").textContent =
+    `This forecast repeats ${percentText(inputs.weightedPriceReturn)} annual price growth and ` +
+    `${percentText(inputs.weightedDividendYield)} distribution yield for ${inputs.horizonYears} years, ` +
+    `with no market declines or inflation adjustment. ` +
+    (inputs.taxMode === "rates"
+      ? `It applies the entered ${percentText(inputs.taxRate)} marginal rate to every deductible dollar; use the income tax preset if that rate would not apply throughout.`
+      : "It uses the entered income to estimate progressive Ontario tax each year.");
   const custom = runCustomSimulation(inputs);
   const comparison = runComparison(inputs);
   const sensitivity = runSensitivity(inputs);

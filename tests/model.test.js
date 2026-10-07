@@ -41,6 +41,10 @@ r=run({initialHelocRoom:10000,helocRate:.12},{helocPaymentStrategy:'self_capital
 r=run({}, {enableSmith:false,marginRatio:.3});close(r.summary.finalPortfolio,0);close(r.summary.finalMarginBalance,0);close(r.summary.finalHelocBalance,0);
 // Zero-interest mortgage pays off in exact months and reports age.
 r=run({mortgagePrincipal:12000,amortYears:1,initialWithdrawal:0},{enableSmith:false});assert.equal(r.summary.mortgagePayoffMonths,12);assert.equal(r.summary.mortgagePayoffAge,36);
+// Each dollar of mortgage principal paid down is readvanced and invested when room permits.
+r=run({mortgagePrincipal:12000,amortYears:1,initialWithdrawal:0,initialHelocRoom:0});
+close(r.monthly[0].mortgageBalance,11000);close(r.monthly[0].helocBalance,1000);
+close(r.monthly[0].portfolio,1000);
 assert.equal(run({mortgagePrincipal:12000,amortYears:25},{enableSmith:false}).summary.mortgagePayoffMonths,null);
 // No liquidation tax benefit is invented for unrealized losses.
 r=run({weightedPriceReturn:-.5});close(r.summary.finalEstimatedLiquidationTax,0);
@@ -54,4 +58,12 @@ close(monthlyPayment(12000,0,12),1000);
 // Freed mortgage payments stay in cash after early payoff under the matched budget.
 r=run({mortgagePrincipal:12000,amortYears:1,initialWithdrawal:0,extraPayment:1000},{enableSmith:false});
 assert.equal(r.summary.mortgagePayoffMonths,6);close(r.summary.finalCashBalance,12000);
-console.log('18 financial model checks passed');
+// The mortgage alternative invests the same monthly outside cash and tracks its cost basis.
+r=run({initialWithdrawal:0, weightedPriceReturn:.1,
+  cashInvestmentSchedule:Array(12).fill(1000)},{enableSmith:false});
+close(r.summary.cumulativeExternalContributions,12000);
+close(r.summary.finalPortfolioAcb,12000);
+assert.ok(r.summary.finalAfterTaxNetPosition>inputs.homeValue);
+assert.equal(r.monthly.length,12);
+close(r.monthly.reduce((sum, month)=>sum+month.externalCashOutlay,0),12000);
+console.log('19 financial model checks passed');
